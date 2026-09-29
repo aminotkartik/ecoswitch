@@ -1,0 +1,360 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Count 4 /Kids [4 0 R 6 0 R 8 0 R 10 0 R] >>
+endobj
+3 0 obj
+<< /Length 6119 >>
+stream
+BT /F1 7.6 Tf 0.34 0.37 0.4 rg 0.400 Tc 1 0 0 1 56.00 791.89 Tm (EcoSwitch - Intelligent Classroom Energy Management) Tj ET
+0.85 0.87 0.88 RG 0.7 w 56.00 779.89 m 539.28 779.89 l S
+BT /F2 26 Tf 0.09 0.11 0.13 rg 1.600 Tc 1 0 0 1 56.00 751.89 Tm (ECOSWITCH) Tj ET
+BT /F1 13 Tf 0.34 0.37 0.4 rg 0.400 Tc 1 0 0 1 56.00 725.89 Tm (Intelligent Classroom Energy Management) Tj ET
+0.85 0.87 0.88 RG 0.7 w 56.00 695.89 m 539.28 695.89 l S
+BT /F2 15 Tf 0.06 0.48 0.3 rg 0.000 Tc 1 0 0 1 56.00 665.89 Tm (Power the classroom. Not the emptiness.) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 56.00 631.89 Tm (An intelligent classroom energy-management system that detects occupancy, understands inactivity, and) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 56.00 617.41 Tm (automatically manages power zone by zone.) Tj ET
+0.965 0.972 0.975 rg 56.00 520.92 483.28 74.00 re f
+0.85 0.87 0.88 RG 0.7 w 56.00 520.92 483.28 74.00 re S
+BT /F2 8.4 Tf 0.62 0.4 0.03 rg 1.100 Tc 1 0 0 1 72.00 570.92 Tm (ABOUT THIS FILE) Tj ET
+BT /F1 9.4 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 72.00 552.92 Tm (This is a placeholder document. It stands in for the project's full engineering report so that every "Technical) Tj ET
+BT /F1 9.4 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 72.00 539.57 Tm (PDF" link on the EcoSwitch website resolves to a real file. Replace it with the actual report - no markup) Tj ET
+BT /F1 9.4 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 72.00 526.23 Tm (changes are required.) Tj ET
+BT /F2 10 Tf 0.06 0.48 0.3 rg 0.600 Tc 1 0 0 1 56.00 482.92 Tm (01) Tj ET
+BT /F2 13.5 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 82.00 482.92 Tm (System overview) Tj ET
+0.85 0.87 0.88 RG 0.7 w 56.00 474.92 m 539.28 474.92 l S
+BT /F2 10.2 Tf 0.06 0.48 0.3 rg 0.000 Tc 1 0 0 1 56.00 456.52 Tm (*) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 68.00 456.92 Tm (EcoSwitch is a supervisory layer between a classroom and its electrical loads. It observes presence and) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 68.00 442.44 Tm (activity, decides whether each zone is genuinely in use, and only then acts.) Tj ET
+BT /F2 10.2 Tf 0.06 0.48 0.3 rg 0.000 Tc 1 0 0 1 56.00 423.55 Tm (*) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 68.00 423.95 Tm (The classroom is divided into horizontal sensing zones. Each zone has its own sensing beams, its own) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 68.00 409.47 Tm (occupancy state, its own inactivity timer and its own controlled loads.) Tj ET
+BT /F2 10.2 Tf 0.06 0.48 0.3 rg 0.000 Tc 1 0 0 1 56.00 390.59 Tm (*) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 68.00 390.99 Tm (A single controller \(ESP32-S3\) samples every sensor input, runs the decision logic, and drives the) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 68.00 376.50 Tm (buzzer, display and relay outputs for each zone independently.) Tj ET
+BT /F2 10.2 Tf 0.06 0.48 0.3 rg 0.000 Tc 1 0 0 1 56.00 357.62 Tm (*) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 68.00 358.02 Tm (The system warns before it acts: occupants receive an audible cue at ten minutes of inactivity, and) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 68.00 343.53 Tm (controlled loads return to standby at fifteen minutes.) Tj ET
+BT /F2 10 Tf 0.06 0.48 0.3 rg 0.600 Tc 1 0 0 1 56.00 309.05 Tm (02) Tj ET
+BT /F2 13.5 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 82.00 309.05 Tm (Design parameters) Tj ET
+0.85 0.87 0.88 RG 0.7 w 56.00 301.05 m 539.28 301.05 l S
+0.965 0.972 0.975 rg 56.00 275.05 483.28 24.00 re f
+BT /F2 9.6 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 66.00 283.05 Tm (Sensing zones per classroom) Tj ET
+BT /F1 9.6 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 274.00 283.05 Tm (6 potential zones in the design concept \(4 beams shown in the reference layout\)) Tj ET
+BT /F2 9.6 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 66.00 257.05 Tm (Occupancy interpretation) Tj ET
+BT /F1 9.6 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 274.00 257.05 Tm (Filtered and validated per zone before any state change) Tj ET
+0.965 0.972 0.975 rg 56.00 223.05 483.28 24.00 re f
+BT /F2 9.6 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 66.00 231.05 Tm (Warning threshold) Tj ET
+BT /F1 9.6 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 274.00 231.05 Tm (10 minutes of continued inactivity) Tj ET
+BT /F2 9.6 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 66.00 205.05 Tm (Power-control threshold) Tj ET
+BT /F1 9.6 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 274.00 205.05 Tm (15 minutes of continued inactivity) Tj ET
+0.965 0.972 0.975 rg 56.00 171.05 483.28 24.00 re f
+BT /F2 9.6 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 66.00 179.05 Tm (Reset condition) Tj ET
+BT /F1 9.6 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 274.00 179.05 Tm (Any validated occupancy or activity in the zone) Tj ET
+BT /F2 9.6 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 66.00 153.05 Tm (Control granularity) Tj ET
+BT /F1 9.6 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 274.00 153.05 Tm (Per zone - occupied zones are never affected by an empty one) Tj ET
+BT /F2 10 Tf 0.06 0.48 0.3 rg 0.600 Tc 1 0 0 1 56.00 101.05 Tm (03) Tj ET
+BT /F2 13.5 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 82.00 101.05 Tm (Scope of this concept) Tj ET
+0.85 0.87 0.88 RG 0.7 w 56.00 93.05 m 539.28 93.05 l S
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 56.00 75.05 Tm (EcoSwitch is a prototype concept. The figures on this page and on the website describe design parameters) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 56.00 60.57 Tm (and simulated interface behaviour; they are not measured savings from an installed system. No component) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 56.00 46.08 Tm (specification, electrical rating or installation detail should be taken from this document - those must be) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 56.00 31.60 Tm (established for the specific classroom by a qualified professional.) Tj ET
+0.85 0.87 0.88 RG 0.7 w 56.00 62.00 m 539.28 62.00 l S
+BT /F1 7.6 Tf 0.34 0.37 0.4 rg 0.300 Tc 1 0 0 1 56.00 50.00 Tm (EcoSwitch - Technical documentation \(template file\)) Tj ET
+BT /F1 7.6 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 499.28 50.00 Tm (Page 1) Tj ET
+endstream
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 11 0 R /F2 12 0 R >> >> /Contents 3 0 R >>
+endobj
+5 0 obj
+<< /Length 8546 >>
+stream
+BT /F1 7.6 Tf 0.34 0.37 0.4 rg 0.400 Tc 1 0 0 1 56.00 791.89 Tm (EcoSwitch - Intelligent Classroom Energy Management) Tj ET
+0.85 0.87 0.88 RG 0.7 w 56.00 779.89 m 539.28 779.89 l S
+BT /F2 8.2 Tf 0.06 0.48 0.3 rg 1.100 Tc 1 0 0 1 56.00 751.89 Tm (SECTION 04) Tj ET
+BT /F2 19 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 56.00 731.89 Tm (System architecture) Tj ET
+0.85 0.87 0.88 RG 0.7 w 56.00 684.89 483.28 26.00 re S
+BT /F2 10.4 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 68.00 692.89 Tm (Sensors) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 266.00 692.89 Tm (mmWave radar modules, IR beam-break pairs, door activity input, PIR cross-check) Tj ET
+BT /F2 8.6 Tf 0.06 0.48 0.3 rg 0.000 Tc 1 0 0 1 70.00 678.89 Tm (|  v) Tj ET
+0.965 0.972 0.975 rg 56.00 646.89 483.28 26.00 re f
+0.85 0.87 0.88 RG 0.7 w 56.00 646.89 483.28 26.00 re S
+BT /F2 10.4 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 68.00 654.89 Tm (ESP32-S3) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 266.00 654.89 Tm (the single controller: samples every input, runs the decision logic, drives every output) Tj ET
+BT /F2 8.6 Tf 0.06 0.48 0.3 rg 0.000 Tc 1 0 0 1 70.00 640.89 Tm (|  v) Tj ET
+0.85 0.87 0.88 RG 0.7 w 56.00 608.89 483.28 26.00 re S
+BT /F2 10.4 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 68.00 616.89 Tm (Occupancy interpretation) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 266.00 616.89 Tm (raw signals are filtered and combined into a validated per-zone decision) Tj ET
+BT /F2 8.6 Tf 0.06 0.48 0.3 rg 0.000 Tc 1 0 0 1 70.00 602.89 Tm (|  v) Tj ET
+0.85 0.87 0.88 RG 0.7 w 56.00 570.89 483.28 26.00 re S
+BT /F2 10.4 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 68.00 578.89 Tm (Zone state engine) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 266.00 578.89 Tm (holds occupied / idle / warning / powered-down for every zone) Tj ET
+BT /F2 8.6 Tf 0.06 0.48 0.3 rg 0.000 Tc 1 0 0 1 70.00 564.89 Tm (|  v) Tj ET
+0.85 0.87 0.88 RG 0.7 w 56.00 532.89 483.28 26.00 re S
+BT /F2 10.4 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 68.00 540.89 Tm (Inactivity timers) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 266.00 540.89 Tm (independent timer per zone - reset by activity, advanced only by silence) Tj ET
+BT /F2 8.6 Tf 0.06 0.48 0.3 rg 0.000 Tc 1 0 0 1 70.00 526.89 Tm (|  v) Tj ET
+0.85 0.87 0.88 RG 0.7 w 56.00 494.89 483.28 26.00 re S
+BT /F2 10.4 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 68.00 502.89 Tm (Warning system) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 266.00 502.89 Tm (buzzer and local display announce the ten-minute warning) Tj ET
+BT /F2 8.6 Tf 0.06 0.48 0.3 rg 0.000 Tc 1 0 0 1 70.00 488.89 Tm (|  v) Tj ET
+0.85 0.87 0.88 RG 0.7 w 56.00 456.89 483.28 26.00 re S
+BT /F2 10.4 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 68.00 464.89 Tm (Power control) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 266.00 464.89 Tm (relay stage switches the controlled loads of that zone only) Tj ET
+BT /F2 8.6 Tf 0.06 0.48 0.3 rg 0.000 Tc 1 0 0 1 70.00 450.89 Tm (|  v) Tj ET
+0.85 0.87 0.88 RG 0.7 w 56.00 418.89 483.28 26.00 re S
+BT /F2 10.4 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 68.00 426.89 Tm (Lights / fans / other controlled loads) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 266.00 426.89 Tm (powered only while their zone needs them) Tj ET
+BT /F2 10 Tf 0.06 0.48 0.3 rg 0.600 Tc 1 0 0 1 56.00 394.89 Tm (05) Tj ET
+BT /F2 13.5 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 82.00 394.89 Tm (Sensing strategy) Tj ET
+0.85 0.87 0.88 RG 0.7 w 56.00 386.89 m 539.28 386.89 l S
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 56.00 368.89 Tm (Two sensing approaches answer two different questions. EcoSwitch uses both: radar for continuous) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 56.00 354.41 Tm (presence, beam-breaks for deterministic, row-level activity. Neither is universally superior.) Tj ET
+0.85 0.87 0.88 RG 0.7 w 56.00 117.92 231.64 214.00 re S
+BT /F2 10.4 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 70.00 307.92 Tm (A - mmWave presence sensing) Tj ET
+BT /F2 9.2 Tf 0.06 0.48 0.3 rg 0.000 Tc 1 0 0 1 70.00 285.92 Tm (*) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 82.00 285.92 Tm (24 GHz FMCW radar front end) Tj ET
+BT /F2 9.2 Tf 0.06 0.48 0.3 rg 0.000 Tc 1 0 0 1 70.00 263.92 Tm (*) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 82.00 263.92 Tm (Detects moving and relatively stationary) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 82.00 250.86 Tm (people) Tj ET
+BT /F2 9.2 Tf 0.06 0.48 0.3 rg 0.000 Tc 1 0 0 1 70.00 241.92 Tm (*) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 82.00 241.92 Tm (Useful for continuous occupancy detection) Tj ET
+BT /F2 9.2 Tf 0.06 0.48 0.3 rg 0.000 Tc 1 0 0 1 70.00 219.92 Tm (*) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 82.00 219.92 Tm (Does not require optical line-of-sight) Tj ET
+BT /F2 9.2 Tf 0.06 0.48 0.3 rg 0.000 Tc 1 0 0 1 70.00 197.92 Tm (*) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 82.00 197.92 Tm (Can detect presence without relying only on) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 82.00 184.86 Tm (movement) Tj ET
+BT /F2 9.2 Tf 0.62 0.4 0.03 rg 0.000 Tc 1 0 0 1 70.00 169.92 Tm (Watch-outs) Tj ET
+BT /F2 9.2 Tf 0.62 0.4 0.03 rg 0.000 Tc 1 0 0 1 70.00 151.92 Tm (-) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 82.00 151.92 Tm (Placement and environmental reflections affect) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 82.00 138.86 Tm (accuracy) Tj ET
+BT /F2 9.2 Tf 0.62 0.4 0.03 rg 0.000 Tc 1 0 0 1 70.00 129.92 Tm (-) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 82.00 129.92 Tm (Objects can produce radar reflections) Tj ET
+BT /F2 9.2 Tf 0.62 0.4 0.03 rg 0.000 Tc 1 0 0 1 70.00 107.92 Tm (-) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 82.00 107.92 Tm (Requires calibration) Tj ET
+BT /F2 9.2 Tf 0.62 0.4 0.03 rg 0.000 Tc 1 0 0 1 70.00 85.92 Tm (-) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 82.00 85.92 Tm (More complex than a simple beam-break) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 82.00 72.86 Tm (sensor) Tj ET
+0.85 0.87 0.88 RG 0.7 w 307.64 117.92 231.64 214.00 re S
+BT /F2 10.4 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 321.64 307.92 Tm (B - IR / laser beam-break) Tj ET
+BT /F2 9.2 Tf 0.06 0.48 0.3 rg 0.000 Tc 1 0 0 1 321.64 285.92 Tm (*) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 333.64 285.92 Tm (Emitter sends a beam to a receiver) Tj ET
+BT /F2 9.2 Tf 0.06 0.48 0.3 rg 0.000 Tc 1 0 0 1 321.64 263.92 Tm (*) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 333.64 263.92 Tm (Beam interruption indicates occupancy /) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 333.64 250.86 Tm (activity) Tj ET
+BT /F2 9.2 Tf 0.06 0.48 0.3 rg 0.000 Tc 1 0 0 1 321.64 241.92 Tm (*) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 333.64 241.92 Tm (Extremely simple and inexpensive) Tj ET
+BT /F2 9.2 Tf 0.06 0.48 0.3 rg 0.000 Tc 1 0 0 1 321.64 219.92 Tm (*) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 333.64 219.92 Tm (Works well for fixed seating and rows) Tj ET
+BT /F2 9.2 Tf 0.62 0.4 0.03 rg 0.000 Tc 1 0 0 1 321.64 191.92 Tm (Watch-outs) Tj ET
+BT /F2 9.2 Tf 0.62 0.4 0.03 rg 0.000 Tc 1 0 0 1 321.64 173.92 Tm (-) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 333.64 173.92 Tm (Requires line-of-sight and precise alignment) Tj ET
+BT /F2 9.2 Tf 0.62 0.4 0.03 rg 0.000 Tc 1 0 0 1 321.64 151.92 Tm (-) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 333.64 151.92 Tm (A beam-break alone cannot determine) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 333.64 138.86 Tm (continued presence once the beam is clear) Tj ET
+BT /F2 9.2 Tf 0.62 0.4 0.03 rg 0.000 Tc 1 0 0 1 321.64 129.92 Tm (-) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 333.64 129.92 Tm (Layout changes can disrupt alignment) Tj ET
+BT /F2 9.2 Tf 0.62 0.4 0.03 rg 0.000 Tc 1 0 0 1 321.64 107.92 Tm (-) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 333.64 107.92 Tm (Ambient light and dust affect a bare optical) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 333.64 94.86 Tm (receiver) Tj ET
+BT /F2 9.6 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 56.00 99.92 Tm (For fixed seating, an IR beam-break can be extremely deterministic. For continuous presence, mmWave is) Tj ET
+BT /F2 9.6 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 56.00 86.29 Tm (more flexible.) Tj ET
+0.85 0.87 0.88 RG 0.7 w 56.00 62.00 m 539.28 62.00 l S
+BT /F1 7.6 Tf 0.34 0.37 0.4 rg 0.300 Tc 1 0 0 1 56.00 50.00 Tm (EcoSwitch - Technical documentation \(template file\)) Tj ET
+BT /F1 7.6 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 499.28 50.00 Tm (Page 2) Tj ET
+endstream
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 11 0 R /F2 12 0 R >> >> /Contents 5 0 R >>
+endobj
+7 0 obj
+<< /Length 7381 >>
+stream
+BT /F1 7.6 Tf 0.34 0.37 0.4 rg 0.400 Tc 1 0 0 1 56.00 791.89 Tm (EcoSwitch - Intelligent Classroom Energy Management) Tj ET
+0.85 0.87 0.88 RG 0.7 w 56.00 779.89 m 539.28 779.89 l S
+BT /F2 8.2 Tf 0.06 0.48 0.3 rg 1.100 Tc 1 0 0 1 56.00 751.89 Tm (SECTIONS 06 - 07) Tj ET
+BT /F2 19 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 56.00 731.89 Tm (Control logic and interpretation) Tj ET
+BT /F2 10 Tf 0.06 0.48 0.3 rg 0.600 Tc 1 0 0 1 56.00 686.89 Tm (06) Tj ET
+BT /F2 13.5 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 82.00 686.89 Tm (The fifteen-minute logic) Tj ET
+0.85 0.87 0.88 RG 0.7 w 56.00 678.89 m 539.28 678.89 l S
+0.965 0.972 0.975 rg 56.00 644.89 76.00 24.00 re f
+BT /F2 11 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 68.00 652.89 Tm (0:00) Tj ET
+BT /F2 9.4 Tf 0.06 0.48 0.3 rg 0.700 Tc 1 0 0 1 148.00 652.89 Tm (ACTIVE) Tj ET
+BT /F1 9.4 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 256.00 652.89 Tm (Occupancy detected in the zone. The timer sits at zero and the) Tj ET
+BT /F1 9.4 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 256.00 639.54 Tm (controlled loads remain on.) Tj ET
+0.965 0.972 0.975 rg 56.00 590.19 76.00 24.00 re f
+BT /F2 11 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 68.00 598.19 Tm (5:00) Tj ET
+BT /F2 9.4 Tf 0.06 0.48 0.3 rg 0.700 Tc 1 0 0 1 148.00 598.19 Tm (IDLE) Tj ET
+BT /F1 9.4 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 256.00 598.19 Tm (No validated activity has reached the zone. The inactivity timer) Tj ET
+BT /F1 9.4 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 256.00 584.85 Tm (keeps counting.) Tj ET
+0.965 0.972 0.975 rg 56.00 535.50 76.00 24.00 re f
+BT /F2 11 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 68.00 543.50 Tm (10:00) Tj ET
+BT /F2 9.4 Tf 0.62 0.4 0.03 rg 0.700 Tc 1 0 0 1 148.00 543.50 Tm (WARNING) Tj ET
+BT /F1 9.4 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 256.00 543.50 Tm (The buzzer warns the room. Any validated activity resets the timer) Tj ET
+BT /F1 9.4 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 256.00 530.15 Tm (immediately.) Tj ET
+0.965 0.972 0.975 rg 56.00 480.80 76.00 24.00 re f
+BT /F2 11 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 68.00 488.80 Tm (15:00) Tj ET
+BT /F2 9.4 Tf 0.06 0.48 0.3 rg 0.700 Tc 1 0 0 1 148.00 488.80 Tm (POWER CONTROL) Tj ET
+BT /F1 9.4 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 256.00 488.80 Tm (The zone's controlled loads are disabled independently of every) Tj ET
+BT /F1 9.4 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 256.00 475.45 Tm (other zone.) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 56.00 438.11 Tm (Any validated occupancy or activity resets the timer. The warning exists so that occupants can respond) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 56.00 423.62 Tm (before automation acts; the power-control step only follows sustained, confirmed inactivity.) Tj ET
+BT /F2 10 Tf 0.06 0.48 0.3 rg 0.600 Tc 1 0 0 1 56.00 385.14 Tm (07) Tj ET
+BT /F2 13.5 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 82.00 385.14 Tm (Sensor data interpretation) Tj ET
+0.85 0.87 0.88 RG 0.7 w 56.00 377.14 m 539.28 377.14 l S
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 56.00 359.14 Tm (The sensors never control the power directly. A beam interruption is evidence, not a decision. The signal) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 56.00 344.65 Tm (passes through a defined pipeline before any control action is issued:) Tj ET
+BT /F2 9.6 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 56.00 322.17 Tm (RAW SENSOR INPUT) Tj ET
+BT /F1 9.4 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 256.00 322.17 Tm (beam state, radar presence, door activity) Tj ET
+BT /F2 8.6 Tf 0.06 0.48 0.3 rg 0.000 Tc 1 0 0 1 64.00 307.17 Tm (v) Tj ET
+BT /F2 9.6 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 56.00 294.17 Tm (FILTERING) Tj ET
+BT /F1 9.4 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 256.00 294.17 Tm (debounce, hold time, rejection of single-frame glitches) Tj ET
+BT /F2 8.6 Tf 0.06 0.48 0.3 rg 0.000 Tc 1 0 0 1 64.00 279.17 Tm (v) Tj ET
+BT /F2 9.6 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 56.00 266.17 Tm (OCCUPANCY DECISION) Tj ET
+BT /F1 9.4 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 256.00 266.17 Tm (combined evidence becomes a per-zone yes / no) Tj ET
+BT /F2 8.6 Tf 0.06 0.48 0.3 rg 0.000 Tc 1 0 0 1 64.00 251.17 Tm (v) Tj ET
+BT /F2 9.6 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 56.00 238.17 Tm (ZONE STATE) Tj ET
+BT /F1 9.4 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 256.00 238.17 Tm (occupied, idle, warning or powered down) Tj ET
+BT /F2 8.6 Tf 0.06 0.48 0.3 rg 0.000 Tc 1 0 0 1 64.00 223.17 Tm (v) Tj ET
+BT /F2 9.6 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 56.00 210.17 Tm (TIMER) Tj ET
+BT /F1 9.4 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 256.00 210.17 Tm (each zone counts its own quiet time) Tj ET
+BT /F2 8.6 Tf 0.06 0.48 0.3 rg 0.000 Tc 1 0 0 1 64.00 195.17 Tm (v) Tj ET
+BT /F2 9.6 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 56.00 182.17 Tm (CONTROL ACTION) Tj ET
+BT /F1 9.4 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 256.00 182.17 Tm (relay command for that zone's loads, and nothing else) Tj ET
+BT /F2 10 Tf 0.06 0.48 0.3 rg 0.600 Tc 1 0 0 1 56.00 144.17 Tm (08) Tj ET
+BT /F2 13.5 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 82.00 144.17 Tm (Safety and real-world deployment) Tj ET
+0.85 0.87 0.88 RG 0.7 w 56.00 136.17 m 539.28 136.17 l S
+BT /F2 10.2 Tf 0.06 0.48 0.3 rg 0.000 Tc 1 0 0 1 56.00 117.77 Tm (*) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 68.00 118.17 Tm (The prototype uses low-voltage loads. It demonstrates behaviour and logic, not an installable electrical) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 68.00 103.69 Tm (design.) Tj ET
+BT /F2 10.2 Tf 0.06 0.48 0.3 rg 0.000 Tc 1 0 0 1 56.00 84.80 Tm (*) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 68.00 85.20 Tm (Real classroom mains switching requires properly rated contactors, protective devices, enclosures and) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 68.00 70.72 Tm (wiring matched to the circuits they serve.) Tj ET
+BT /F2 10.2 Tf 0.06 0.48 0.3 rg 0.000 Tc 1 0 0 1 56.00 51.83 Tm (*) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 68.00 52.23 Tm (The controller does not switch mains directly. The ESP32-S3 drives a control stage; it is never the) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 68.00 37.75 Tm (component that opens or closes a mains circuit.) Tj ET
+BT /F2 10.2 Tf 0.06 0.48 0.3 rg 0.000 Tc 1 0 0 1 56.00 18.87 Tm (*) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 68.00 19.27 Tm (Essential safety circuits - emergency lighting, alarms, exit signage - should not be part of the automated) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 68.00 4.78 Tm (shutdown system at all.) Tj ET
+BT /F2 10.2 Tf 0.06 0.48 0.3 rg 0.000 Tc 1 0 0 1 56.00 -14.10 Tm (*) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 68.00 -13.70 Tm (A real installation should be designed and installed by a qualified electrician and verified before use.) Tj ET
+BT /F2 10.2 Tf 0.06 0.48 0.3 rg 0.000 Tc 1 0 0 1 56.00 -32.59 Tm (*) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 68.00 -32.19 Tm (Sensor placement and calibration are part of the installation: reflections, furniture layout and beam) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 68.00 -46.67 Tm (alignment all change what the system reports.) Tj ET
+0.85 0.87 0.88 RG 0.7 w 56.00 62.00 m 539.28 62.00 l S
+BT /F1 7.6 Tf 0.34 0.37 0.4 rg 0.300 Tc 1 0 0 1 56.00 50.00 Tm (EcoSwitch - Technical documentation \(template file\)) Tj ET
+BT /F1 7.6 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 499.28 50.00 Tm (Page 3) Tj ET
+endstream
+endobj
+8 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 11 0 R /F2 12 0 R >> >> /Contents 7 0 R >>
+endobj
+9 0 obj
+<< /Length 7124 >>
+stream
+BT /F1 7.6 Tf 0.34 0.37 0.4 rg 0.400 Tc 1 0 0 1 56.00 791.89 Tm (EcoSwitch - Intelligent Classroom Energy Management) Tj ET
+0.85 0.87 0.88 RG 0.7 w 56.00 779.89 m 539.28 779.89 l S
+BT /F2 8.2 Tf 0.06 0.48 0.3 rg 1.100 Tc 1 0 0 1 56.00 751.89 Tm (SECTIONS 09 - 10) Tj ET
+BT /F2 19 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 56.00 731.89 Tm (Hardware, roadmap and next steps) Tj ET
+BT /F2 10 Tf 0.06 0.48 0.3 rg 0.600 Tc 1 0 0 1 56.00 686.89 Tm (09) Tj ET
+BT /F2 13.5 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 82.00 686.89 Tm (Hardware roles) Tj ET
+0.85 0.87 0.88 RG 0.7 w 56.00 678.89 m 539.28 678.89 l S
+0.965 0.972 0.975 rg 56.00 648.89 483.28 38.00 re f
+BT /F2 9.8 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 66.00 660.89 Tm (ESP32-S3) Tj ET
+BT /F2 7.6 Tf 0.12 0.34 0.62 rg 0.800 Tc 1 0 0 1 66.00 645.89 Tm (CONTROLLER) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 246.00 662.89 Tm (Reads every sensor input, runs the occupancy and timer logic, drives) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 246.00 650.89 Tm (outputs.) Tj ET
+BT /F2 9.8 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 66.00 620.89 Tm (S3KM1110 mmWave sensor) Tj ET
+BT /F2 7.6 Tf 0.12 0.34 0.62 rg 0.800 Tc 1 0 0 1 66.00 605.89 Tm (PRESENCE SENSING) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 246.00 622.89 Tm (Compact 24 GHz FMCW radar used for continuous presence) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 246.00 610.89 Tm (detection.) Tj ET
+0.965 0.972 0.975 rg 56.00 568.89 483.28 38.00 re f
+BT /F2 9.8 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 66.00 580.89 Tm (IR emitter) Tj ET
+BT /F2 7.6 Tf 0.12 0.34 0.62 rg 0.800 Tc 1 0 0 1 66.00 565.89 Tm (BEAM SOURCE) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 246.00 582.89 Tm (Projects an infrared beam across the room to a paired receiver.) Tj ET
+BT /F2 9.8 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 66.00 540.89 Tm (Photodiode / phototransistor) Tj ET
+BT /F2 7.6 Tf 0.12 0.34 0.62 rg 0.800 Tc 1 0 0 1 66.00 525.89 Tm (BEAM DETECTION) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 246.00 542.89 Tm (Senses the beam at the far wall; loss of signal is an activity event.) Tj ET
+0.965 0.972 0.975 rg 56.00 488.89 483.28 38.00 re f
+BT /F2 9.8 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 66.00 500.89 Tm (PIR sensor) Tj ET
+BT /F2 7.6 Tf 0.12 0.34 0.62 rg 0.800 Tc 1 0 0 1 66.00 485.89 Tm (SECONDARY TRIGGER) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 246.00 502.89 Tm (Low-cost motion cue used as a cross-check, not as the primary) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 246.00 490.89 Tm (decision.) Tj ET
+BT /F2 9.8 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 66.00 460.89 Tm (Buzzer) Tj ET
+BT /F2 7.6 Tf 0.12 0.34 0.62 rg 0.800 Tc 1 0 0 1 66.00 445.89 Tm (LOCAL WARNING) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 246.00 462.89 Tm (Audible cue at the ten-minute mark, before any power control.) Tj ET
+0.965 0.972 0.975 rg 56.00 408.89 483.28 38.00 re f
+BT /F2 9.8 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 66.00 420.89 Tm (OLED display) Tj ET
+BT /F2 7.6 Tf 0.12 0.34 0.62 rg 0.800 Tc 1 0 0 1 66.00 405.89 Tm (LOCAL STATUS) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 246.00 422.89 Tm (Shows zone state, running timer and active power state.) Tj ET
+BT /F2 9.8 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 66.00 380.89 Tm (Relay module) Tj ET
+BT /F2 7.6 Tf 0.12 0.34 0.62 rg 0.800 Tc 1 0 0 1 66.00 365.89 Tm (LOAD SWITCHING) Tj ET
+BT /F1 9.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 246.00 382.89 Tm (Isolated switching stage between controller and controlled loads.) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 56.00 332.89 Tm (This list describes component roles and function, not a verified electrical design. Ratings, protection and) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 56.00 318.41 Tm (wiring must be specified for the installation by a qualified professional.) Tj ET
+BT /F2 10 Tf 0.06 0.48 0.3 rg 0.600 Tc 1 0 0 1 56.00 279.92 Tm (10) Tj ET
+BT /F2 13.5 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 82.00 279.92 Tm (Roadmap) Tj ET
+0.85 0.87 0.88 RG 0.7 w 56.00 271.92 m 539.28 271.92 l S
+BT /F2 10 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 56.00 253.92 Tm (V1 Prototype) Tj ET
+BT /F1 9.4 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 206.00 253.92 Tm (Sensing, occupancy interpretation, the 10/15-minute logic, buzzer warning and) Tj ET
+BT /F1 9.4 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 206.00 240.57 Tm (relay control.) Tj ET
+BT /F2 10 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 56.00 221.92 Tm (V2 Zone intelligence) Tj ET
+BT /F1 9.4 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 206.00 221.92 Tm (Door-event context, smarter debounce and hold windows, per-zone calibration) Tj ET
+BT /F1 9.4 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 206.00 208.57 Tm (profiles.) Tj ET
+BT /F2 10 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 56.00 189.92 Tm (V3 Energy analytics) Tj ET
+BT /F1 9.4 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 206.00 189.92 Tm (Current sensing per zone, logging and reporting so behaviour can be) Tj ET
+BT /F1 9.4 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 206.00 176.57 Tm (measured.) Tj ET
+BT /F2 10 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 56.00 157.92 Tm (V4 Campus-wide deployment) Tj ET
+BT /F1 9.4 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 206.00 157.92 Tm (Multi-classroom management, occupancy heatmaps and central oversight.) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 56.00 121.92 Tm (Planned future features: real-time dashboard, energy measurement, historical analytics, occupancy) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 56.00 107.44 Tm (heatmaps, multi-classroom management, Wi-Fi / MQTT integration, Google Sheets or cloud backend,) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 56.00 92.95 Tm (automatic reporting. These are planned directions of work, not shipped features.) Tj ET
+BT /F2 10 Tf 0.06 0.48 0.3 rg 0.600 Tc 1 0 0 1 56.00 54.47 Tm (11) Tj ET
+BT /F2 13.5 Tf 0.09 0.11 0.13 rg 0.000 Tc 1 0 0 1 82.00 54.47 Tm (Replacing this template) Tj ET
+0.85 0.87 0.88 RG 0.7 w 56.00 46.47 m 539.28 46.47 l S
+BT /F2 10.2 Tf 0.06 0.48 0.3 rg 0.000 Tc 1 0 0 1 56.00 28.07 Tm (*) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 68.00 28.47 Tm (Add the project's actual engineering report - architecture, schematics, sensing strategy, control logic,) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 68.00 13.99 Tm (hardware design, calibration procedure and test results.) Tj ET
+BT /F2 10.2 Tf 0.06 0.48 0.3 rg 0.000 Tc 1 0 0 1 56.00 -4.90 Tm (*) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 68.00 -4.50 Tm (Keep the file name pdf.pdf, or update the four "Technical PDF" / "Documentation" links in index.html.) Tj ET
+BT /F2 10.2 Tf 0.06 0.48 0.3 rg 0.000 Tc 1 0 0 1 56.00 -23.38 Tm (*) Tj ET
+BT /F1 10.2 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 68.00 -22.98 Tm (Everything else on the site requires no change: the links already open in a new tab.) Tj ET
+0.85 0.87 0.88 RG 0.7 w 56.00 62.00 m 539.28 62.00 l S
+BT /F1 7.6 Tf 0.34 0.37 0.4 rg 0.300 Tc 1 0 0 1 56.00 50.00 Tm (EcoSwitch - Technical documentation \(template file\)) Tj ET
+BT /F1 7.6 Tf 0.34 0.37 0.4 rg 0.000 Tc 1 0 0 1 499.28 50.00 Tm (Page 4) Tj ET
+endstream
+endobj
+10 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 11 0 R /F2 12 0 R >> >> /Contents 9 0 R >>
+endobj
+11 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+12 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+xref
+0 13
+0000000000 65535 f 
+0000000015 00000 n 
+0000000064 00000 n 
+0000000140 00000 n 
+0000006311 00000 n 
+0000006455 00000 n 
+0000015053 00000 n 
+0000015197 00000 n 
+0000022630 00000 n 
+0000022774 00000 n 
+0000029950 00000 n 
+0000030095 00000 n 
+0000030193 00000 n 
+trailer
+<< /Size 13 /Root 1 0 R >>
+startxref
+30296
+%%EOF
