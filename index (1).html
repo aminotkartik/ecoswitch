@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f7f0e3">
+<title>EcoSwitch: Hybrid PIR + 24 GHz mmWave Zone-Level Occupancy Switching</title>
+<meta name="description" content="EcoSwitch is a low-cost, camera-free, three-zone classroom energy management prototype combining PIR motion sensing with 24 GHz mmWave presence detection on an ESP32-S3.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* =========================================================
+   THEME TOKENS: change the whole look from this block only
+   ========================================================= */
+:root{
+  /* palette */
+  --ivory:#f7f0e3; --cream:#fbf6ec; --sand:#eadfc9;
+  --charcoal:#2b2118; --charcoal-soft:#5c4a3b;
+  --terracotta:#b4502e; --orange:#bf4d18; --amber:#e3a22b; --gold:#c98f1a; --copper:#a5673c;
+  --brown:#4a2f20; --brown-deep:#271710;
+
+  /* semantic (light surfaces) */
+  --bg:var(--ivory); --fg:var(--charcoal); --fg-mute:#6a5646;
+  --accent:#a8431f;           /* text-safe terracotta */
+  --accent-glow:var(--amber);
+  --line:rgba(94,62,38,.22); --line-strong:rgba(94,62,38,.42);
+  --glass:rgba(255,250,240,.58); --glass-strong:rgba(255,251,244,.82);
+  --glass-edge:rgba(255,255,255,.7);
+  --focus:#8a3b12;
+  --soft:rgba(227,162,43,.14);   /* tinted fills */
+
+  /* states */
+  --st-occupied:#e3a22b; --st-occupied-fg:#2b1a0c;
+  --st-grace:#c4501a;    --st-vacant:#6f6154;
+  --st-manual:#8a5a2b;   --st-degraded:#7d2d22;
+
+  /* shape + depth */
+  --r-s:8px; --r-m:14px; --r-l:22px;
+  --blur:18px;
+  --shadow-s:0 1px 2px rgba(74,40,16,.08),0 8px 20px rgba(120,70,30,.08);
+  --shadow-m:0 2px 4px rgba(74,40,16,.08),0 22px 48px rgba(120,70,30,.15);
+  --glow:0 0 0 1px rgba(227,162,43,.55),0 0 30px rgba(227,162,43,.38);
+
+  /* type */
+  --font-display:"Barlow Condensed","Arial Narrow","Helvetica Neue",Arial,sans-serif;
+  --font-body:"Hanken Grotesk",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+
+  color-scheme:light;
+}
+/* dark sections re-point the semantic tokens */
+.dark{
+  color:var(--fg);
+  --bg:var(--brown-deep); --fg:#f6ead9; --fg-mute:#d1bba0;
+  --accent:#f2b552;
+  --line:rgba(255,214,160,.2); --line-strong:rgba(255,214,160,.38);
+  --glass:rgba(255,232,200,.07); --glass-strong:rgba(255,232,200,.13);
+  --glass-edge:rgba(255,226,180,.22);
+  --focus:#ffd28a; --soft:rgba(242,181,82,.12);
+  --shadow-s:0 1px 2px rgba(0,0,0,.3),0 10px 24px rgba(0,0,0,.25);
+  --shadow-m:0 2px 4px rgba(0,0,0,.3),0 24px 54px rgba(0,0,0,.4);
+}
+
+/* ============ base ============ */
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:88px;-webkit-text-size-adjust:100%}
+html,body{max-width:100%}
+body{margin:0;font:400 1rem/1.64 var(--font-body);color:var(--fg);background:var(--bg);overflow-x:clip;
+  background-image:radial-gradient(1100px 560px at 88% -8%,rgba(227,162,43,.2),transparent 62%),radial-gradient(900px 520px at -8% 28%,rgba(180,80,46,.1),transparent 62%)}
+img,svg{max-width:100%}
+h1,h2,h3,h4{font-family:var(--font-display);font-weight:700;line-height:1.02;margin:0 0 .45em;letter-spacing:.005em}
+h2{font-size:clamp(2.5rem,5.6vw,4.4rem);letter-spacing:-.005em;max-width:22ch;text-wrap:balance}
+h3{font-size:clamp(1.5rem,2.4vw,1.95rem);margin-top:2.2em}
+h4{font-size:1.3rem;margin-top:1.2em}
+p{margin:.6em 0;max-width:70ch}
+a{color:var(--accent);text-underline-offset:3px}
+a:hover{color:var(--orange)}
+.dark a:hover{color:#ffd28a}
+ul{padding-left:1.15em;max-width:74ch}li{margin:.3em 0}
+b,strong{font-weight:650}
+code,.mono{font-family:var(--font-mono);font-size:.88em}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px;border-radius:4px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--brown-deep);color:#fff;padding:10px 16px;border-radius:8px;z-index:100}
+.skip:focus{left:12px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{width:min(1180px,100% - 40px);margin-inline:auto}
+.sec{padding:clamp(72px,9vw,128px) 0}
+.sec + .sec{padding-top:clamp(48px,6vw,84px)}
+.sec.dark{background:linear-gradient(180deg,#2d1b12,#1d110b);color:var(--fg);padding-block:clamp(72px,9vw,120px);position:relative}
+.sec.dark::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(900px 420px at 80% 0%,rgba(227,162,43,.16),transparent 65%)}
+.sec.dark > *{position:relative}
+.lede{font-size:clamp(1.05rem,1.5vw,1.25rem);color:var(--fg-mute);max-width:62ch}
+.sub{color:var(--fg-mute)}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr))}
+
+/* ============ glass ============ */
+.glass{background:var(--glass);border:1px solid var(--line);border-radius:var(--r-l);padding:clamp(18px,2.4vw,28px);
+  -webkit-backdrop-filter:blur(var(--blur)) saturate(1.25);backdrop-filter:blur(var(--blur)) saturate(1.25);
+  box-shadow:var(--shadow-s),inset 0 1px 0 var(--glass-edge)}
+.glass.tight{padding:16px 18px;border-radius:var(--r-m)}
+.glass h3,.glass h4{margin-top:0}
+.glass p:first-child{margin-top:0}
+.card-t{font:700 1.45rem/1.1 var(--font-display);display:block;margin-bottom:.3em}
+
+/* ============ buttons / badges / tags ============ */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.65em;font:700 .86rem/1.1 var(--font-body);letter-spacing:.1em;text-transform:uppercase;
+  padding:1.05em 1.5em;border-radius:12px;text-decoration:none;border:1px solid var(--line-strong);cursor:pointer;color:var(--fg);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);transition:transform .2s ease,box-shadow .2s ease,background .2s ease}
+.btn:hover{transform:translateY(-2px);color:var(--fg)}
+.btn svg{width:1.2em;height:1.2em;flex:none}
+.btn-glass{background:linear-gradient(180deg,rgba(255,255,255,.62),rgba(255,246,230,.28));box-shadow:var(--shadow-s),inset 0 1px 0 rgba(255,255,255,.8)}
+.btn-glass:hover{box-shadow:var(--shadow-m),inset 0 1px 0 #fff}
+.btn-primary,.btn-primary:hover{color:#fff}
+.btn-primary{background:linear-gradient(180deg,#d4641f,#b2430f);border-color:rgba(255,214,160,.6);
+  box-shadow:0 12px 32px rgba(191,77,24,.38),inset 0 1px 0 rgba(255,225,190,.6)}
+.btn-primary:hover{box-shadow:0 16px 40px rgba(191,77,24,.5),0 0 0 3px rgba(227,162,43,.35),inset 0 1px 0 rgba(255,225,190,.7)}
+.btn-sm{padding:.8em 1.1em;font-size:.76rem;border-radius:10px}
+.linkbtn{font-weight:600;font-size:.92rem}
+.badge-lv{display:inline-flex;align-items:center;gap:.6em;font:700 .76rem/1 var(--font-body);letter-spacing:.12em;text-transform:uppercase;
+  color:#4a2300;background:linear-gradient(180deg,#f7c660,#e3a22b);border:1px solid rgba(120,70,10,.45);border-radius:8px;padding:.6em .9em;box-shadow:0 0 0 3px rgba(227,162,43,.18)}
+.badge-lv i{width:.6em;height:.6em;border-radius:50%;background:#7a2f0e;box-shadow:0 0 0 0 rgba(122,47,14,.5);animation:ping 2.4s ease-out infinite}
+@keyframes ping{70%,100%{box-shadow:0 0 0 8px rgba(122,47,14,0)}}
+.chip{display:inline-flex;align-items:center;gap:.4em;padding:.28em .8em;border:1px solid var(--line);border-radius:99px;background:var(--glass);font-size:.84rem;color:var(--fg)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.tag{display:inline-flex;align-items:center;font-size:.72rem;font-weight:650;letter-spacing:.02em;padding:.12em .7em;border-radius:99px;border:1px solid;margin-left:6px;vertical-align:middle;white-space:nowrap}
+.t-meas{background:var(--brown);color:#fbe9cf;border-color:var(--brown)}
+.t-assume{background:rgba(227,162,43,.2);color:#6b4106;border-color:rgba(201,143,26,.7)}
+.t-hyp{background:transparent;color:#7a4320;border-color:var(--copper);border-style:dashed}
+.t-exp{background:rgba(191,77,24,.12);color:#8a3410;border-color:rgba(191,77,24,.55)}
+.t-todo{background:transparent;color:var(--fg-mute);border-color:var(--line-strong);border-style:dashed}
+.dark .t-assume{color:#ffd88f}.dark .t-hyp{color:#e7b48c}.dark .t-exp{color:#ffb98a}.dark .t-meas{background:#f2b552;color:#2b1a0c;border-color:#f2b552}
+
+.note{border:1px solid var(--line);border-left:4px solid var(--amber);background:var(--soft);padding:14px 18px;border-radius:0 var(--r-m) var(--r-m) 0;margin:18px 0;max-width:78ch}
+.note.warn{border-left-color:var(--orange)}
+.note.key{border-left-color:var(--terracotta);font-size:1.05rem}
+
+/* ============ top bar ============ */
+.topbar{position:sticky;top:0;z-index:60;padding-top:env(safe-area-inset-top,0px);
+  background:rgba(251,246,236,.72);-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);
+  border-bottom:1px solid var(--line);box-shadow:0 6px 24px rgba(120,70,30,.07)}
+.topbar-in{width:min(1480px,100% - 24px);margin-inline:auto;display:flex;align-items:center;gap:14px;height:62px}
+.brand{display:flex;align-items:center;gap:.5em;font:700 1.5rem/1 var(--font-display);color:var(--charcoal);text-decoration:none;letter-spacing:.02em;flex:none;padding:6px 4px}
+.brand:hover{color:var(--charcoal)}
+.brand svg{width:30px;height:30px}
+#nav{flex:1;min-width:0;position:relative}
+.navlinks{list-style:none;margin:0;padding:4px 0;max-width:none;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent 100%)}
+.navlinks::-webkit-scrollbar{display:none}
+.navlinks li{margin:0;flex:none}
+.navlinks a{display:block;white-space:nowrap;text-decoration:none;color:#5c4a3b;font-weight:600;font-size:.82rem;padding:.5em .62em;border-radius:9px;border:1px solid transparent;transition:background .2s,color .2s}
+.navlinks a:hover{background:rgba(227,162,43,.16);color:var(--charcoal)}
+.navlinks a.on{background:rgba(191,77,24,.12);color:#8a3410;border-color:rgba(191,77,24,.35);box-shadow:0 0 14px rgba(227,162,43,.28)}
+.topbar .btn{flex:none}
+
+/* ============ hero ============ */
+.hero{position:relative;padding:clamp(36px,6vw,84px) 0 clamp(48px,6vw,90px);overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.55;
+  background-image:linear-gradient(rgba(120,70,30,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(120,70,30,.07) 1px,transparent 1px);background-size:56px 56px;
+  -webkit-mask-image:radial-gradient(70% 70% at 60% 40%,#000,transparent);mask-image:radial-gradient(70% 70% at 60% 40%,#000,transparent)}
+.hero-grid{position:relative;display:grid;grid-template-columns:1.12fr .98fr;gap:clamp(24px,4vw,56px);align-items:center}
+.hero h1{font-size:clamp(2.6rem,4.9vw,5.2rem);line-height:.94;letter-spacing:.004em;text-transform:uppercase;margin:.5em 0 .4em;max-width:none;text-wrap:balance}
+.hero h1 span{display:block}
+.hero h1 span + span{color:var(--terracotta)}
+.hero .sub-h{font-size:clamp(1.05rem,1.5vw,1.3rem);color:var(--charcoal-soft);max-width:56ch}
+.cta-row{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin:30px 0 10px}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:26px}
+.hero-vis{position:relative;padding:14px;border-radius:26px;box-shadow:var(--shadow-m),0 0 60px rgba(227,162,43,.22),inset 0 1px 0 var(--glass-edge)}
+.hero-vis .cap{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;padding:10px 6px 2px;font-size:.84rem;color:var(--fg-mute)}
+.pills{display:flex;flex-wrap:wrap;gap:6px}
+.pill{display:inline-flex;align-items:center;gap:.5em;font-size:.78rem;font-weight:650;padding:.3em .8em;border-radius:99px;border:1px solid var(--line-strong);background:var(--glass-strong);color:var(--fg)}
+.pill i{width:.62em;height:.62em;border-radius:50%;background:var(--st-vacant)}
+.pill[data-st="OCCUPIED"] i{background:var(--st-occupied);box-shadow:0 0 8px var(--amber)}
+.pill[data-st="GRACE"] i{background:var(--st-grace);box-shadow:0 0 8px var(--st-grace)}
+.pill[data-st="MANUAL OVERRIDE"] i{background:var(--st-manual)}
+.pill[data-st="DEGRADED"] i{background:var(--st-degraded)}
+
+/* ============ evidence legend + kpis ============ */
+.legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:12px;margin:22px 0}
+.legend div{border:1px solid var(--line);border-radius:var(--r-m);padding:12px 14px;background:var(--glass);font-size:.92rem}
+.legend .tag{margin:0 0 6px}
+.legend p{margin:.2em 0 0;font-size:.9rem;color:var(--fg-mute)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:12px;margin-top:18px}
+.kpi{border:1px solid var(--line);border-radius:var(--r-m);padding:14px 16px;background:linear-gradient(160deg,rgba(255,236,196,.7),rgba(255,248,235,.45));box-shadow:var(--shadow-s)}
+.kpi b{display:block;font:700 2rem/1 var(--font-display);color:var(--accent);margin-bottom:.15em}
+.kpi small{color:var(--fg-mute);font-size:.86rem;line-height:1.35;display:block}
+
+/* ============ tables ============ */
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r-m);background:var(--glass-strong);margin:14px 0;box-shadow:var(--shadow-s);-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:.92rem}
+th,td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:rgba(227,162,43,.16);font-weight:650;white-space:nowrap;font-size:.84rem;letter-spacing:.02em}
+tr:last-child td{border-bottom:0}
+tbody tr:hover{background:rgba(227,162,43,.1)}
+tbody th{background:transparent;white-space:normal;font-size:.92rem}
+.stars{color:var(--gold);letter-spacing:2px;white-space:nowrap}
+.ph{color:var(--fg-mute);font-style:italic}
+
+/* ============ controls ============ */
+.seg{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+button,select,input{font:inherit;color:inherit}
+.seg button,.tgl{border:1px solid var(--line-strong);background:var(--glass-strong);color:var(--fg);padding:.6em 1.05em;border-radius:10px;cursor:pointer;font-weight:600;font-size:.92rem;transition:background .2s,box-shadow .2s,transform .15s}
+.seg button:hover,.tgl:hover{box-shadow:var(--shadow-s);transform:translateY(-1px)}
+.seg button.on,.tgl.on,.seg button[aria-pressed="true"]{background:linear-gradient(180deg,#d4641f,#b2430f);color:#fff;border-color:rgba(255,214,160,.55);box-shadow:0 6px 18px rgba(191,77,24,.3)}
+.dark .seg button.on,.dark .tgl.on{box-shadow:0 0 18px rgba(242,181,82,.4)}
+.sl{display:grid;grid-template-columns:180px 1fr 84px;gap:12px;align-items:center;margin:10px 0;font-size:.95rem}
+.sl output{font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--orange);height:28px}
+
+/* ============ sensors ============ */
+.sensor-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,480px),1fr));gap:20px;margin-top:28px}
+.sv{--pf:#e8782f}
+.sv svg{width:100%;height:auto;display:block;border-radius:var(--r-m);background:linear-gradient(180deg,rgba(255,236,200,.06),rgba(255,236,200,.015));border:1px solid var(--line)}
+.sv h3{margin-top:0}
+.sv .board{fill:#6b3c1f;stroke:#e3a22b;stroke-width:1.5}
+.sv .dome{fill:#f3dfbd;stroke:#e3a22b;stroke-width:1.5}
+.sv .patch{fill:#e3a22b;opacity:.9}
+.sv .floor{stroke:rgba(255,214,160,.35);stroke-width:2;stroke-dasharray:6 6}
+.sv .body{stroke:#f6ead9;fill:none;stroke-width:9;stroke-linecap:round;stroke-linejoin:round}
+.sv .head{fill:#f6ead9}
+.sv .furn{stroke:#c9a67e;stroke-width:5;fill:none;stroke-linecap:round}
+.sv text{fill:#f6ead9;font:600 13px var(--font-body)}
+.sv .lbl{fill:#d1bba0;font-size:12px}
+.sv .field{fill:var(--pf);opacity:.16;transition:opacity .3s}
+.sv .seam{stroke:var(--pf);stroke-width:1.2;stroke-dasharray:4 5;opacity:.7}
+.sv[data-state="walk"] .field{opacity:.42}
+.sv[data-state="still"] .field.mmf{opacity:.3}
+.sv[data-state="still"] .field.pirf{opacity:.1}
+.sv .p-walk,.sv .p-still,.sv .b-walk,.sv .b-still,.sv .b-empty,.sv .micro{display:none}
+.sv[data-state="walk"] .p-walk,.sv[data-state="walk"] .b-walk,.sv[data-state="still"] .p-still,.sv[data-state="still"] .b-still,.sv[data-state="empty"] .b-empty{display:block}
+.sv[data-state="still"] .micro{display:block}
+.sv .bdg rect{fill:rgba(40,22,12,.85);stroke:var(--amber);stroke-width:1.5}
+.sv .bdg.warn rect{stroke:var(--st-grace)}
+.p-walk-a{animation:walk 3.2s ease-in-out infinite alternate}
+@keyframes walk{from{transform:translateX(-80px)}to{transform:translateX(80px)}}
+.ring{fill:none;stroke:var(--amber);stroke-width:2;opacity:.5;animation:ringout 3.6s linear infinite}
+.ring:nth-of-type(2){animation-delay:1.2s}.ring:nth-of-type(3){animation-delay:2.4s}
+@keyframes ringout{from{transform:scale(.3);opacity:.7}to{transform:scale(4.2);opacity:0}}
+.mic{fill:none;stroke:var(--amber);stroke-width:2;transform-box:fill-box;transform-origin:center;animation:mic 2.4s ease-out infinite}
+.mic:nth-child(2){animation-delay:1.2s}
+@keyframes mic{from{transform:scale(.6);opacity:.9}to{transform:scale(2.4);opacity:0}}
+.sv .clutter{display:none}
+.sv[data-clutter="1"] .clutter{display:block}
+.fanblade{animation:spin 1.4s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.readout{min-height:4.6em;margin:12px 0 4px;padding:12px 14px;border-radius:var(--r-m);border:1px solid var(--line);background:var(--glass);font-size:.95rem}
+.limits{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:12px;margin-top:14px}
+.limits div{border:1px dashed var(--line-strong);border-radius:var(--r-m);padding:12px 14px;background:var(--glass);font-size:.9rem}
+.limits b{display:block;font:700 1.2rem/1.1 var(--font-display);color:var(--accent);margin-bottom:.2em}
+.chk{display:inline-flex;gap:.5em;align-items:center;font-size:.9rem;cursor:pointer;margin-left:8px}
+.chk input{accent-color:var(--orange);width:18px;height:18px}
+
+/* ============ classroom ============ */
+.room{width:100%;height:auto;display:block}
+.room .zone-rect{fill:rgba(255,236,196,.25);stroke:#a5673c;stroke-width:1.5;stroke-dasharray:7 6;transition:fill .4s,stroke .4s}
+.room .zone-rect.s-OCCUPIED{fill:rgba(227,162,43,.2);stroke:#c98f1a;stroke-dasharray:none}
+.room .zone-rect.s-GRACE{fill:rgba(196,80,26,.14);stroke:#c4501a}
+.room .zone-rect.s-VACANT{fill:rgba(111,97,84,.14);stroke:#8d7b6a}
+.room .zone-rect.s-MANUAL{fill:rgba(138,90,43,.2);stroke:#8a5a2b;stroke-dasharray:2 4}
+.room .zone-rect.s-DEGRADED{fill:rgba(125,45,34,.16);stroke:#7d2d22;stroke-dasharray:10 4}
+.room .zl{font:700 17px var(--font-display);fill:#4a2f20;letter-spacing:.04em}
+.room .t{font:600 11px var(--font-body);fill:#6a5646}
+.room .wire{fill:none;stroke:#c4501a;stroke-width:2;stroke-dasharray:6 6;animation:flow 1.6s linear infinite;opacity:.85}
+@keyframes flow{to{stroke-dashoffset:-24}}
+.room .ctrl-box{fill:#3a2418;stroke:#e3a22b;stroke-width:2}
+.room .ctrl-t{font:700 18px var(--font-display);fill:#ffe2ad;letter-spacing:.05em}
+.room .ctrl-s{font:500 10px var(--font-body);fill:#e9c993}
+.room .ctrl-glow{fill:#e3a22b;opacity:.28;animation:glowp 3s ease-in-out infinite}
+@keyframes glowp{50%{opacity:.08}}
+.room .sensor{fill:#3a2418;stroke:#e3a22b;stroke-width:1.5}
+.room .sdome{fill:#f3dfbd;stroke:#c98f1a}
+.room .spatch{fill:#e3a22b}
+.room .pir-field{fill:#e8782f;opacity:.06;stroke:#e8782f;stroke-width:1.3;stroke-dasharray:4 4;transition:opacity .4s}
+.room .pir-field.on{opacity:.27}
+.room .mm-field{fill:#e3a22b;opacity:.05;stroke:#c98f1a;stroke-width:1.3;transition:opacity .4s}
+.room .mm-field.on{opacity:.2}
+.room .rng{fill:none;stroke:#c98f1a;stroke-width:2;opacity:0}
+.room .rng.on{animation:ringout 3.6s linear infinite}
+.room .rng.on:nth-of-type(2){animation-delay:1.2s}.room .rng.on:nth-of-type(3){animation-delay:2.4s}
+.room .lamp-halo{fill:url(#glow);opacity:0;transition:opacity .5s}
+.room .lamp-halo.on{opacity:1}
+.room .lamp{fill:#8b7a6a;stroke:#5a3a24;stroke-width:2;transition:fill .4s}
+.room .lamp.on{fill:#ffd27a}
+.room .fan-blade{fill:#8b7a6a}
+.room .fan.on .fan-blade{fill:#c4501a}
+.room .fan.on .spin{animation:spin 1s linear infinite}
+.room .desk{fill:#d9c09a;stroke:#a5673c;stroke-width:1.2}
+.room .person{fill:#4a2f20}
+.room .p-still,.room .p-walk{display:none}
+.room .on .p-still,.room .p-still.on{display:block}
+.room .p-walk.on{display:block;animation:aisle 5s ease-in-out infinite alternate}
+@keyframes aisle{from{transform:translateY(0)}to{transform:translateY(170px)}}
+.room .micro-r{fill:none;stroke:#c4501a;stroke-width:1.6;transform-box:fill-box;transform-origin:center;animation:mic 2.4s ease-out infinite}
+.room .chip-bg{fill:#4a2f20;transition:fill .4s}
+.room .chip-bg.s-OCCUPIED{fill:#b87a0c}.room .chip-bg.s-GRACE{fill:#c4501a}.room .chip-bg.s-VACANT{fill:#6f6154}.room .chip-bg.s-MANUAL{fill:#8a5a2b}.room .chip-bg.s-DEGRADED{fill:#7d2d22}
+.room .chip-t{font:700 12px var(--font-body);fill:#fff;text-anchor:middle}
+.room-key{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:12px;font-size:.88rem;color:var(--fg-mute)}
+.room-key span{display:inline-flex;align-items:center;gap:.5em}
+.room-key i{width:16px;height:10px;border-radius:3px;display:inline-block}
+.zcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px;margin-top:20px}
+.zc{border:1px solid var(--line);border-radius:var(--r-l);padding:20px;background:var(--glass-strong);box-shadow:var(--shadow-s);position:relative;overflow:hidden;transition:box-shadow .4s,border-color .4s}
+.zc::before{content:"";position:absolute;inset:0 0 auto 0;height:5px;background:var(--st-vacant);transition:background .4s}
+.zc[data-k="OCCUPIED"]{box-shadow:var(--shadow-s),var(--glow)}
+.zc[data-k="OCCUPIED"]::before{background:var(--st-occupied)}
+.zc[data-k="GRACE"]::before{background:var(--st-grace)}
+.zc[data-k="MANUAL"]::before{background:var(--st-manual)}
+.zc[data-k="DEGRADED"]::before{background:repeating-linear-gradient(45deg,var(--st-degraded) 0 8px,#b84a30 8px 16px)}
+.zc h3{margin:0 0 8px;font-size:1.7rem}
+.zc dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:12px 0 0;font-size:.92rem}
+.zc dt{color:var(--fg-mute)}.zc dd{margin:0;font-weight:600;text-align:right}
+.sbadge{display:inline-block;font:700 1.15rem/1 var(--font-display);letter-spacing:.06em;padding:.45em .9em;border-radius:8px;color:#fff;background:var(--st-vacant);transition:background .3s}
+.sbadge.s-OCCUPIED{background:var(--st-occupied);color:var(--st-occupied-fg)}
+.sbadge.s-GRACE{background:var(--st-grace)}.sbadge.s-VACANT{background:var(--st-vacant)}
+.sbadge.s-MANUAL{background:var(--st-manual)}.sbadge.s-DEGRADED{background:repeating-linear-gradient(45deg,#7d2d22 0 8px,#9a3a2c 8px 16px)}
+.load{display:inline-flex;align-items:center;gap:.45em;padding:.3em .8em;border-radius:99px;border:1px solid var(--line-strong);font-size:.85rem;font-weight:600;margin:2px 4px 2px 0;background:var(--glass)}
+.load.on{background:linear-gradient(180deg,#ffd77f,#e3a22b);color:#3a2000;border-color:#b87a0c;box-shadow:0 0 14px rgba(227,162,43,.5)}
+.bar{height:8px;border-radius:99px;background:rgba(111,97,84,.25);overflow:hidden;margin-top:10px}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--amber),var(--orange));transition:width .9s linear}
+
+/* ============ architecture ============ */
+.tree{display:flex;flex-direction:column;align-items:center;gap:0;margin-top:30px}
+.node{border:1px solid var(--line-strong);border-radius:var(--r-m);padding:12px 16px;background:var(--glass-strong);text-align:center;font-size:.92rem;box-shadow:var(--shadow-s);width:100%}
+.node b{display:block;font:700 1.25rem/1.1 var(--font-display)}
+.node small{color:var(--fg-mute);display:block;margin-top:3px}
+.node.main{max-width:380px;background:linear-gradient(160deg,#4a2f20,#2d1b12);color:#fbe9cf;border-color:var(--amber);box-shadow:var(--shadow-m),0 0 40px rgba(227,162,43,.35)}
+.node.main small{color:#e9c993}
+.node.sense{border-color:rgba(191,77,24,.55)}
+.node.load{border-color:rgba(201,143,26,.7);border-radius:var(--r-m);display:block;margin:0}
+.vline{width:2px;height:28px;background:linear-gradient(var(--copper),var(--orange));flex:none}
+.hbus{width:calc(66.666% - 12px);height:2px;background:var(--copper);flex:none}
+.tcols{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;width:100%}
+.tcol{display:flex;flex-direction:column;align-items:center}
+.tcol .zt{font:700 1.9rem/1 var(--font-display);margin:2px 0 6px;color:var(--accent)}
+.tperiph{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:10px;width:100%;margin-top:22px}
+.chain{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:16px 0}
+.chain .node{width:auto;flex:1 1 140px;padding:10px 12px}
+.chain .arr{color:var(--copper);font-size:1.3rem;flex:none}
+.pe{display:grid;grid-template-columns:1.35fr 1fr;gap:22px;align-items:start;margin-top:26px}
+.pe svg{width:100%;height:auto;display:block;border-radius:var(--r-m);background:rgba(255,236,200,.04);border:1px solid var(--line)}
+.pe .t{font:600 13px var(--font-body);fill:#f6ead9}.pe .t2{font:500 11.5px var(--font-body);fill:#d1bba0}
+.pe .w{stroke:#f2b552;stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.pe .gnd{stroke:#cfa97f}.pe .sig{stroke:#ff9a5a}
+.pe .part{fill:rgba(255,232,200,.07);stroke:#f2b552;stroke-width:2.2}
+.pe .flow{stroke-dasharray:7 7;animation:flow 1.4s linear infinite}
+.pe ol{padding-left:1.2em}.pe li{margin:.45em 0}
+
+/* ============ components ============ */
+.ccards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,330px),1fr));gap:16px;margin-top:18px}
+.cc{position:relative;border:1px solid var(--line);border-radius:var(--r-l);padding:20px 20px 18px;background:var(--glass-strong);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:var(--shadow-s);transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease;outline-offset:3px}
+.cc:hover,.cc:focus-within{transform:translateY(-4px);border-color:rgba(201,143,26,.75);box-shadow:var(--shadow-m),0 0 26px rgba(227,162,43,.3)}
+.cc h3{margin:0 0 2px;font-size:1.55rem}
+.cc .qty{position:absolute;top:16px;right:16px;font:700 .8rem var(--font-body);padding:.2em .7em;border-radius:99px;background:rgba(227,162,43,.2);border:1px solid rgba(201,143,26,.6);color:#6b4106}
+.cc .cat{font-size:.8rem;color:var(--fg-mute);margin-bottom:8px;display:block}
+.cc dl{margin:10px 0 0}
+.cc dt{font-weight:700;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-top:9px}
+.cc dd{margin:2px 0 0;font-size:.92rem}
+.cc .cav{margin-top:10px;font-size:.85rem;padding:8px 10px;border-radius:10px;background:var(--soft);border:1px dashed var(--line-strong)}
+
+/* ============ simulator ============ */
+.timing{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px;margin:18px 0}
+.timing div{border:1px solid var(--line-strong);border-radius:var(--r-m);padding:12px 16px;background:var(--glass)}
+.timing b{display:block;font:700 1.3rem/1.1 var(--font-display);color:var(--accent)}
+.zsims{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:16px;margin-top:20px}
+.zs{border:1px solid var(--line-strong);border-radius:var(--r-l);padding:20px;background:var(--glass);box-shadow:var(--shadow-s);transition:box-shadow .4s}
+.zs[data-k="OCCUPIED"]{box-shadow:var(--shadow-s),0 0 30px rgba(242,181,82,.28)}
+.zs h3{margin:0 0 10px;font-size:1.8rem}
+.zs .row{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.zs .tgl{flex:1 1 130px;text-align:center;font-size:.86rem}
+.zs details{margin-top:10px;font-size:.9rem}
+.zs summary{cursor:pointer;font-weight:600;color:var(--accent);padding:4px 0}
+.zs .cdt{font-size:.9rem;color:var(--fg-mute);min-height:2.6em;margin:8px 0 0}
+.smwrap{margin-top:30px}
+.sm{width:100%;height:auto;display:block;border:1px solid var(--line);border-radius:var(--r-l);background:rgba(255,232,200,.04)}
+.sm .nb{fill:rgba(255,232,200,.07);stroke:#cfa97f;stroke-width:2;transition:fill .3s,stroke .3s,filter .3s}
+.sm .nt{font:700 22px var(--font-display);fill:#f6ead9;letter-spacing:.05em;text-anchor:middle}
+.sm .ns{font:500 11.5px var(--font-body);fill:#d1bba0;text-anchor:middle}
+.sm .node-g.active .nb{fill:#e3a22b;stroke:#ffd88f;filter:drop-shadow(0 0 12px rgba(242,181,82,.8))}
+.sm .node-g.active .nt{fill:#2b1a0c}.sm .node-g.active .ns{fill:#4a2f20}
+.sm .node-g.under .nb{stroke:#f2b552;stroke-dasharray:6 4}
+.sm .ar{fill:none;stroke:#f2b552;stroke-width:2.2}
+.sm .ar.dash{stroke-dasharray:6 6;stroke:#cfa97f}
+.sm .al{font:600 12px var(--font-body);fill:#f6ead9;text-anchor:middle}
+.sm .grp{fill:none;stroke:rgba(255,214,160,.28);stroke-dasharray:3 6;stroke-width:1.5}
+.log{list-style:none;padding:0;margin:12px 0 0;max-width:none;font-family:var(--font-mono);font-size:.84rem;color:var(--fg-mute);min-height:5.5em}
+.log li{margin:.2em 0}
+
+/* ============ research, testing, measurements ============ */
+.rq{position:relative;border-radius:28px;padding:clamp(28px,5vw,60px);background:linear-gradient(135deg,rgba(255,236,196,.8),rgba(250,214,170,.5));
+  border:1px solid rgba(201,143,26,.55);box-shadow:var(--shadow-m),0 0 50px rgba(227,162,43,.2);overflow:hidden}
+.rq::after{content:"";position:absolute;right:-60px;top:-60px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(227,162,43,.4),transparent 70%)}
+.rq .q-l{font:600 .9rem var(--font-body);color:var(--accent);margin:0 0 10px}
+.rq blockquote{margin:0;font:700 clamp(1.9rem,4.2vw,3.5rem)/1.04 var(--font-display);max-width:26ch;position:relative;z-index:1;text-wrap:balance}
+.nov{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:12px;margin:22px 0}
+.nov div{border:1px solid var(--line-strong);border-left:4px solid var(--orange);border-radius:var(--r-m);padding:14px 16px;background:var(--glass-strong);font-weight:600}
+.nov small{display:block;font-weight:400;color:var(--fg-mute);margin-top:3px}
+.mx td,.mx th{text-align:center;vertical-align:middle}
+.mx td:first-child,.mx th:first-child{text-align:left}
+.mx .grp th{font:700 1.1rem var(--font-display);letter-spacing:.04em}
+.mx .cell{display:inline-block;min-width:78px;padding:.2em .6em;border:1px dashed var(--line-strong);border-radius:8px;color:var(--fg-mute);font-size:.8rem}
+.mx .hyp{display:none;font-size:.82rem;color:#7a4320;text-align:left}
+.mx[data-view="hyp"] .hyp{display:block}.mx[data-view="hyp"] .cell{display:none}
+.mx .hyp.none{color:var(--fg-mute);font-style:italic}
+.meas{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:14px;margin-top:16px}
+.mc{border:1.5px dashed var(--line-strong);border-radius:var(--r-l);padding:18px;background:var(--glass-strong)}
+.mc b{font:700 1.35rem/1.1 var(--font-display);display:block}
+.mc .val{font:700 1.5rem/1.2 var(--font-display);color:var(--fg-mute);margin:10px 0 4px}
+.mc.has{border-style:solid;border-color:var(--copper)}
+.mc.has .val{color:var(--accent)}
+.mc small{color:var(--fg-mute)}
+.bandhead{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0 18px}
+.bandhead .tag{margin:0;font-size:.8rem;padding:.3em .9em}
+.divider-t{margin-top:56px;padding-top:24px;border-top:1px solid var(--line-strong)}
+
+/* ============ timeline ============ */
+.tl{list-style:none;margin:20px 0 0;padding:0 0 0 26px;border-left:2px solid var(--copper);max-width:none}
+.tl li{position:relative;margin:0 0 14px;padding:14px 18px;border:1px solid var(--line);border-radius:var(--r-m);background:var(--glass-strong);transition:transform .2s,box-shadow .2s}
+.tl li:hover{transform:translateX(4px);box-shadow:var(--shadow-s)}
+.tl li::before{content:"";position:absolute;left:-35px;top:20px;width:16px;height:16px;border-radius:50%;background:var(--orange);border:3px solid var(--bg);box-shadow:0 0 0 2px var(--copper),0 0 14px rgba(227,162,43,.6)}
+.tl b{display:block;font:700 1.25rem/1.1 var(--font-display);color:var(--accent);margin-bottom:2px}
+
+/* ============ footer ============ */
+.footer{background:#1d110b;color:#f6ead9;padding:56px 0 calc(40px + env(safe-area-inset-bottom,0px))}
+.footer .wrap{display:flex;flex-wrap:wrap;gap:28px;justify-content:space-between;align-items:flex-end}
+.footer p{color:#d1bba0;font-size:.9rem;max-width:60ch}
+.footer .brand{color:#f6ead9;font-size:2.2rem}
+.footer .brand:hover{color:#fff}
+.footer .btn-glass{color:#f6ead9;background:rgba(255,232,200,.08);border-color:rgba(255,214,160,.4);box-shadow:none}
+.footer .btn-glass:hover{color:#fff}
+.footer .acts{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.footer a:not(.btn){color:#f2b552}
+
+/* ============ responsive ============ */
+@media(max-width:1180px){.navlinks a{padding:.55em .62em;font-size:.8rem}}
+@media(max-width:980px){
+  .hero-grid{grid-template-columns:1fr}
+  .hero h1{font-size:clamp(2.5rem,9.4vw,5.2rem)}
+  .pe{grid-template-columns:1fr}
+  .topbar-in{gap:8px}
+  .brand{font-size:1.45rem}
+}
+@media(max-width:760px){
+  .sl{grid-template-columns:1fr auto}.sl input{grid-column:1/3}
+  .tcols{grid-template-columns:1fr;gap:6px}
+  .hbus{display:none}
+  .tcol .vline.top{display:none}
+  .btn{width:100%}.topbar .btn{width:auto}.cta-row .btn{flex:1 1 100%}
+  .topbar-in{height:58px}
+  .topbar .btn span.lg{display:none}
+}
+@media(max-width:420px){.brand span.nm{display:none}}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .room .p-walk.on{transform:translateY(60px)}
+  .p-walk-a{transform:none}
+  .room .rng.on,.ring{opacity:.25}
+}
+@media print{.topbar{position:static}.sec.dark{background:#fff;color:#000}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to main content</a>
+
+<!-- shared figure symbols (side-view people used by sensor diagrams) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <g id="pw" fill="none" stroke="#f6ead9" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="0" cy="-100" r="11" fill="#f6ead9" stroke="none"/>
+      <path d="M0 -86 L0 -44"/><path d="M0 -44 L-14 0"/><path d="M0 -44 L14 0"/>
+      <path d="M0 -78 L-16 -52"/><path d="M0 -78 L16 -56"/>
+    </g>
+    <g id="ps" fill="none" stroke="#f6ead9" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="0" cy="-104" r="11" fill="#f6ead9" stroke="none"/>
+      <path d="M0 -90 L0 -44"/><path d="M0 -44 L34 -44 L34 0"/><path d="M0 -76 L34 -64"/>
+      <path d="M22 -60 L100 -60 M94 -60 V0" stroke="#c9a67e" stroke-width="5"/>
+      <path d="M-16 -50 V0" stroke="#c9a67e" stroke-width="4" opacity=".7"/>
+    </g>
+  </defs>
+</svg>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="#top" aria-label="EcoSwitch, back to top">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="2" width="28" height="28" rx="8" fill="#bf4d18"/><path d="M17.5 5 9 18h6l-1.5 9L23 13.5h-6.2z" fill="#ffe2ad"/></svg>
+      <span class="nm">EcoSwitch</span>
+    </a>
+    <nav id="nav" aria-label="Primary">
+      <ul class="navlinks">
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#problem">Problem</a></li>
+        <li><a href="#technology">Technology</a></li>
+        <li><a href="#zones">3-Zone System</a></li>
+        <li><a href="#architecture">Architecture</a></li>
+        <li><a href="#components">Components</a></li>
+        <li><a href="#energy">Energy Model</a></li>
+        <li><a href="#simulation">Simulation</a></li>
+        <li><a href="#research">Research</a></li>
+        <li><a href="#testing">Testing</a></li>
+        <li><a href="#timeline">Timeline</a></li>
+        <li><a href="#safety">Safety</a></li>
+        <li><a href="#conclusion">Conclusion</a></li>
+      </ul>
+    </nav>
+    <a class="btn btn-primary btn-sm" href="pdf.pdf" download="EcoSwitch-Technical.pdf" aria-label="Download the technical PDF">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 20h16"/></svg>
+      <span>Download <span class="lg">PDF</span></span>
+    </a>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ======================= HERO ======================= -->
+<section class="hero" id="top" aria-labelledby="hero-h">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="badge-lv"><i></i>Low-voltage prototype</span>
+      <h1 id="hero-h"><span>Power the classroom.</span><span>Not the emptiness.</span></h1>
+      <p class="sub-h">EcoSwitch is a low-cost, camera-free classroom energy management system that combines PIR motion sensing with 24 GHz mmWave presence detection to control electrical loads zone by zone.</p>
+      <div class="cta-row">
+        <a class="btn btn-glass" href="#architecture">Explore the system</a>
+        <a class="btn btn-primary" href="pdf.pdf" download="EcoSwitch-Technical.pdf">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 20h16"/></svg>
+          Download technical PDF
+        </a>
+      </div>
+      <a class="linkbtn" href="pdf.pdf" target="_blank" rel="noopener">Open PDF in a new tab</a>
+      <div class="meta" aria-label="Project details">
+        <span class="chip">B.Tech Year 1, IT</span><span class="chip">PCCOE, Pune</span><span class="chip">Guide: Rohit Tathe</span><span class="chip">~12 weeks</span><span class="chip">5-member team</span>
+      </div>
+    </div>
+    <div class="glass hero-vis" aria-label="Animated classroom and sensor illustration">
+      <div data-room="hero"></div>
+      <div class="cap">
+        <div class="pills" id="heroPills" aria-live="off"></div>
+        <span>Live view, linked to the <a href="#simulation">simulator</a></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= OVERVIEW ======================= -->
+<section class="sec" id="overview" aria-labelledby="ov-h">
+  <div class="wrap">
+    <h2 id="ov-h">A serious, low-cost, experimental smart-classroom controller.</h2>
+    <p class="lede">Lights and fans in classrooms, labs and offices are often left running in empty rooms. PIR sensors are cheap but respond to movement, so they can switch off on someone reading or writing an exam. Cameras avoid that but cost more and raise privacy concerns.</p>
+    <p>EcoSwitch is a low-cost, offline controller. An ESP32-S3 reads a PIR sensor and a 24 GHz mmWave presence sensor in each of three zones, and turns a zone's loads off only after <b>both sensors</b> have reported that zone clear for a set time. The team is building a three-zone, low-voltage (5 V DC) prototype with an LED light indicator and a DC motor/fan per zone, then testing hybrid against PIR-only and mmWave-only sensing on false-vacancy rate, false-occupancy time, response time and energy saved.</p>
+
+    <h3>How to read the numbers on this site</h3>
+    <div class="legend" role="list">
+      <div role="listitem"><span class="tag t-meas">Measured</span><p>Collected from the prototype or a real room. Nothing on this page is in this category yet.</p></div>
+      <div role="listitem"><span class="tag t-assume">Assumption</span><p>An input chosen for the scenario model, to be verified by an audit.</p></div>
+      <div role="listitem"><span class="tag t-hyp">Hypothesis</span><p>A claim the experiments are designed to test.</p></div>
+      <div role="listitem"><span class="tag t-exp">Expected</span><p>A goal or target, not a prediction or a result.</p></div>
+    </div>
+
+    <h3>Scenario estimates <span class="tag t-assume">Scenario model</span><span class="tag t-todo">Not yet measured</span></h3>
+    <div class="grid g3">
+      <div class="glass tight"><span class="card-t">~2,000 kWh/yr</span><span class="sub">Low-case waste for 60 rooms. In this case the model does not pay back.</span></div>
+      <div class="glass tight"><span class="card-t">~9,100 kWh/yr</span><span class="sub">Base-case waste. Simple payback is about 3.5 years in the model.</span></div>
+      <div class="glass tight"><span class="card-t">~27,000 kWh/yr</span><span class="sub">High-case waste. Simple payback is under 1 year in the model.</span></div>
+    </div>
+    <div class="note">Savings depend on how much waste really occurs, which is why a measurement audit (Phase 0) comes first. These figures come from the <a href="#energy">scenario model</a>, not from experiments.</div>
+
+    <h3>Objectives and scope</h3>
+    <div class="grid g3">
+      <div class="glass"><span class="card-t">Objectives</span><ul><li>Estimate waste with a transparent, measured-where-possible model.</li><li>Build a three-zone prototype that controls a light indicator and a fan per zone from hybrid detection.</li><li>Compare PIR-only, mmWave-only and hybrid sensing.</li><li>Measure false vacancy, false occupancy, response time and energy saved.</li><li>Document the design for a larger deployment.</li></ul></div>
+      <div class="glass"><span class="card-t">In scope</span><ul><li>One bench-scale classroom model with three zones</li><li>Per zone: one LED indicator and one 5 V DC motor/fan</li><li>Offline local decisions on an ESP32-S3</li><li>Per-zone manual override</li><li>OLED status display and buzzer feedback</li><li>Scenario tests and energy calculation</li></ul></div>
+      <div class="glass"><span class="card-t">Out of scope</span><ul><li>Switching building mains (unless under qualified supervision)</li><li>AC integration</li><li>People counting</li><li>Cloud dashboards</li><li>Machine learning</li><li>Whole-institute installation</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= PROBLEM ======================= -->
+<section class="sec" id="problem" aria-labelledby="pr-h">
+  <div class="wrap">
+    <h2 id="pr-h">Empty rooms keep drawing power.</h2>
+    <p class="lede">Buildings use a large share of electricity. Schools run on fixed timetables with gaps (between lectures, breaks, after practicals, early and late hours) where lights and fans stay on because switching off is nobody's explicit job <span class="tag t-hyp">Hypothesis: to be validated by audit</span></p>
+    <p>Surveys of occupancy sensing (Nguyen &amp; Aiello 2013; Dong et al. 2019; Chen et al. 2018) cover cost, accuracy, privacy and installation trade-offs. A lighting-control meta-analysis (Williams et al. 2012) found roughly a quarter average lighting savings, mostly in commercial buildings abroad, so it cannot be applied directly to an Indian campus.</p>
+    <div class="note warn"><b>Problem:</b> manual or timer switching wastes energy. Motion-only automation can make false "vacant" calls on still occupants, which annoys users until they bypass or remove it. A low-cost, privacy-preserving approach that stays reliable during low-motion periods is needed.</div>
+
+    <h3>Existing solutions</h3>
+    <div class="grid g4">
+      <div class="glass tight"><span class="card-t">PIR switches</span>Widely sold wall and ceiling occupancy switches.</div>
+      <div class="glass tight"><span class="card-t">Dual-technology</span>PIR plus ultrasonic or microphonic sensing.</div>
+      <div class="glass tight"><span class="card-t">BMS</span>Scheduling, CO₂ or camera-based occupancy.</div>
+      <div class="glass tight"><span class="card-t">ECBC</span>India's building code has lighting-control provisions; the clauses for educational buildings still need to be read.</div>
+    </div>
+    <h3>Why they are not more common <span class="tag t-hyp">Hypotheses to test with the college electrician</span></h3>
+    <ul>
+      <li>Tariffs and budgets make payback unattractive unless waste is high.</li>
+      <li>Retrofits need wiring changes and trained labour.</li>
+      <li>PIR-only systems can switch off on seated people, so users bypass them.</li>
+      <li>Split incentive: whoever pays the bill is not who chooses or uses the equipment.</li>
+      <li>Cameras raise privacy concerns and need more processing.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ======================= TECHNOLOGY ======================= -->
+<section class="sec" id="technology" aria-labelledby="te-h">
+  <div class="wrap">
+    <h2 id="te-h">Two sensors with different blind spots.</h2>
+    <p class="lede">Table 4 compares sensing technologies. Relevance ratings are the team's judgement for this application. Filter by minimum stars.</p>
+    <div class="seg" id="starf" role="group" aria-label="Filter technologies by minimum relevance"></div>
+    <div data-t="t4" data-cap="Table 4: sensing technologies compared"></div>
+    <div class="note">Cameras and thermal cameras lose on privacy, cost and processing. CO₂ is too slow. Wi-Fi/BLE misses people without devices. Beam-break needs alignment and counting. PIR and mmWave balance cost, privacy and capability, and their weaknesses differ, which suggests combining them.</div>
+
+    <h3>The hybrid approach</h3>
+    <div data-t="t5" data-cap="Comparison of PIR, mmWave and hybrid behaviour"></div>
+    <p>A PIR sensor reacts to infrared change from moving warm bodies. A 24 GHz mmWave presence/motion sensor reports reflected-energy changes; exact range and detection performance depend on module configuration, placement and calibration <span class="tag t-todo">Confirm against the S3KM1110 datasheet</span></p>
+    <div class="grid g3">
+      <div class="glass tight"><span class="card-t">Turn ON</span>As soon as either sensor sees presence in a zone.</div>
+      <div class="glass tight"><span class="card-t">Stay ON</span>While either sensor still reports presence in that zone.</div>
+      <div class="glass tight"><span class="card-t">Turn OFF</span>Only after both sensors report none, continuously, for the timeout. This is designed to reduce false-vacancy events compared with PIR-only sensing.</div>
+    </div>
+
+    <div class="dark glass" style="margin-top:44px;border-radius:30px;padding:clamp(22px,3.5vw,44px);background:linear-gradient(160deg,#35200f,#1f120b);border-color:rgba(255,214,160,.2)">
+      <h3 style="margin-top:0">See how each sensor sees the room</h3>
+      <p class="sub">Choose what the person is doing. These are conceptual diagrams of sensing principles, not measured coverage.</p>
+      <div class="sensor-grid">
+        <!-- PIR -->
+        <div class="sv" id="svPir" data-state="walk">
+          <h4>PIR: passive infrared</h4>
+          <div class="seg" role="group" aria-label="PIR scenario">
+            <button type="button" data-s="empty">Room empty</button><button type="button" data-s="walk" class="on">Person walking</button><button type="button" data-s="still">Person sitting still</button>
+          </div>
+          <svg viewBox="0 0 560 300" role="img" aria-label="Side view: a PIR sensor on the left with a fan-shaped detection field. A walking person is detected; a person sitting still may not be.">
+            <path class="field pirf" d="M106 152 L530 20 L530 284 Z"/>
+            <path class="seam" d="M106 152 L530 64"/><path class="seam" d="M106 152 L530 108"/><path class="seam" d="M106 152 L530 152"/><path class="seam" d="M106 152 L530 196"/><path class="seam" d="M106 152 L530 240"/>
+            <line class="floor" x1="106" y1="268" x2="545" y2="268"/>
+            <rect class="board" x="30" y="130" width="76" height="44" rx="6"/>
+            <ellipse class="dome" cx="68" cy="126" rx="24" ry="17"/>
+            <path d="M52 124 H84 M68 111 V138" stroke="#c98f1a" stroke-width="1.2" fill="none"/>
+            <rect x="44" y="174" width="6" height="14" fill="#e3a22b"/><rect x="65" y="174" width="6" height="14" fill="#e3a22b"/><rect x="86" y="174" width="6" height="14" fill="#e3a22b"/>
+            <text x="68" y="212" text-anchor="middle">PIR sensor</text>
+            <text class="lbl" x="68" y="228" text-anchor="middle">looks for IR change</text>
+            <g class="p-walk"><g class="p-walk-a"><use href="#pw" x="330" y="268"/></g></g>
+            <g class="p-still"><use href="#ps" x="290" y="268"/></g>
+            <g class="bdg b-walk" transform="translate(290,26)"><rect width="168" height="32" rx="9"/><text x="84" y="21" text-anchor="middle">Movement detected</text></g>
+            <g class="bdg warn b-still" transform="translate(262,26)"><rect width="224" height="32" rx="9"/><text x="112" y="21" text-anchor="middle">Little change: may read clear</text></g>
+            <g class="bdg b-empty" transform="translate(320,26)"><rect width="120" height="32" rx="9"/><text x="60" y="21" text-anchor="middle">Field clear</text></g>
+          </svg>
+          <p class="readout" aria-live="polite"></p>
+          <div class="limits">
+            <div><b>Low-motion periods</b>A person reading or writing may produce little change in the infrared pattern.</div>
+            <div><b>Sunlight and warm objects</b>Heat sources near the lens can trigger it; to be tested.</div>
+            <div><b>Field leakage</b>Wide lens fields can see into a corridor or the next zone depending on placement.</div>
+          </div>
+        </div>
+        <!-- mmWave -->
+        <div class="sv" id="svMm" data-state="walk" data-clutter="0" style="--pf:#e3a22b">
+          <h4>mmWave: 24 GHz radar</h4>
+          <div class="seg" role="group" aria-label="mmWave scenario">
+            <button type="button" data-s="empty">Room empty</button><button type="button" data-s="walk" class="on">Person walking</button><button type="button" data-s="still">Person sitting still</button>
+          </div>
+          <label class="chk"><input type="checkbox" id="clutterChk"> Show interference sources</label>
+          <svg viewBox="0 0 560 300" role="img" aria-label="Side view: a 24 GHz mmWave module on the left with a radar cone. It shows a moving person, a seated person with micro-motion, and optional interference sources such as a fan and a curtain.">
+            <defs><clipPath id="mmclip"><path d="M106 152 L530 24 L530 280 Z"/></clipPath></defs>
+            <path class="field mmf" d="M106 152 L530 24 L530 280 Z"/>
+            <g clip-path="url(#mmclip)">
+              <circle class="ring" cx="106" cy="152" r="60" style="transform-origin:106px 152px"/>
+              <circle class="ring" cx="106" cy="152" r="60" style="transform-origin:106px 152px"/>
+              <circle class="ring" cx="106" cy="152" r="60" style="transform-origin:106px 152px"/>
+            </g>
+            <line class="floor" x1="106" y1="268" x2="545" y2="268"/>
+            <rect class="board" x="26" y="122" width="80" height="60" rx="6"/>
+            <rect class="patch" x="36" y="132" width="26" height="18"/><rect class="patch" x="36" y="154" width="26" height="18"/>
+            <rect x="70" y="136" width="26" height="30" rx="3" fill="#2b1a0c" stroke="#e3a22b"/>
+            <text x="16" y="204">24 GHz mmWave module</text>
+            <text class="lbl" x="16" y="220">transmits and listens</text>
+            <g class="p-walk"><g class="p-walk-a"><use href="#pw" x="330" y="268"/></g></g>
+            <g class="p-still"><use href="#ps" x="290" y="268"/></g>
+            <g class="micro"><circle class="mic" cx="290" cy="200" r="10"/><circle class="mic" cx="290" cy="200" r="10"/></g>
+            <g class="clutter">
+              <circle cx="448" cy="62" r="36" fill="none" stroke="#c4501a" stroke-width="2" stroke-dasharray="5 5"/>
+              <g class="fanblade" style="transform-origin:448px 62px"><ellipse cx="448" cy="44" rx="7" ry="17" fill="#cfa97f"/><ellipse cx="448" cy="44" rx="7" ry="17" fill="#cfa97f" transform="rotate(120 448 62)"/><ellipse cx="448" cy="44" rx="7" ry="17" fill="#cfa97f" transform="rotate(240 448 62)"/></g>
+              <circle cx="448" cy="62" r="5" fill="#f6ead9"/>
+              <path d="M505 70 q9 20 0 40 t0 40 t0 40 t0 40" fill="none" stroke="#c4501a" stroke-width="3" stroke-dasharray="6 5"/>
+              <text class="lbl" x="448" y="118" text-anchor="middle">fan</text><text class="lbl" x="522" y="248">curtain</text>
+              <g class="bdg warn" transform="translate(122,76)"><rect width="188" height="30" rx="9"/><text x="94" y="20" text-anchor="middle">Possible false returns</text></g>
+            </g>
+            <g class="bdg b-walk" transform="translate(236,236)"><rect width="206" height="30" rx="9" transform="translate(0,-216)"/><text x="103" y="-196" text-anchor="middle">Moving target detected</text></g>
+            <g class="bdg b-still" transform="translate(236,236)"><rect width="262" height="30" rx="9" transform="translate(-30,-216)"/><text x="101" y="-196" text-anchor="middle">Low-motion presence (module-dependent)</text></g>
+            <g class="bdg b-empty" transform="translate(236,236)"><rect width="120" height="30" rx="9" transform="translate(40,-216)"/><text x="100" y="-196" text-anchor="middle">No target</text></g>
+          </svg>
+          <p class="readout" aria-live="polite"></p>
+          <p class="sub" style="font-size:.9rem">24 GHz mmWave presence/motion sensor; exact range and detection performance depend on module configuration, placement and calibration.</p>
+        </div>
+      </div>
+      <h4>What can go wrong with mmWave</h4>
+      <p class="sub">None of these is a reason to avoid the sensor; each is a test case in the <a href="#testing">experimental matrix</a>.</p>
+      <div class="limits">
+        <div><b>Reflections</b>Radar energy bounces off walls and metal, creating returns away from the intended area.</div>
+        <div><b>Furniture</b>Metal cupboards and benches can reflect or shadow part of the zone.</div>
+        <div><b>Fans</b>A rotating fan is a moving target and can look like occupancy if it is not tuned out.</div>
+        <div><b>Curtains</b>Moving fabric near a window can create motion returns.</div>
+        <div><b>Range</b>Detection range is configurable and limited; each zone must be sized to the module.</div>
+        <div><b>Placement</b>Mounting height and angle change what the sensor sees.</div>
+        <div><b>Calibration</b>Sensitivity must be tuned per zone and verified in testing.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 3-ZONE SYSTEM ======================= -->
+<section class="sec" id="zones" aria-labelledby="zo-h">
+  <div class="wrap">
+    <h2 id="zo-h">An empty zone does not force the entire classroom to switch off.</h2>
+    <p class="lede">The classroom is split into three independent zones. Each zone has its own mmWave and PIR pair, its own timer, its own light indicator and fan, and its own manual override. The ESP32-S3 evaluates them separately.</p>
+    <div class="glass" style="padding:clamp(10px,2vw,22px);margin-top:26px">
+      <div data-room="main"></div>
+      <div class="room-key" aria-hidden="true">
+        <span><i style="background:#e8782f"></i>PIR field (illustrative)</span>
+        <span><i style="background:#e3a22b"></i>mmWave field (illustrative)</span>
+        <span><i style="background:#ffd27a;border:1px solid #5a3a24"></i>Light indicator on</span>
+        <span><i style="background:#c4501a"></i>Fan on</span>
+        <span><i style="background:repeating-linear-gradient(90deg,#c4501a 0 4px,transparent 4px 8px);height:3px"></i>Sensor data to ESP32-S3</span>
+      </div>
+      <p class="sub" style="font-size:.9rem">Plan view of a stylised classroom model. Field shapes and positions are conceptual, not measured coverage. This illustration is linked to the simulator, so toggling sensors there changes the zones here.</p>
+    </div>
+    <h3>Live zone status</h3>
+    <div class="zcards" id="zoneCards"></div>
+  </div>
+</section>
+
+<!-- ======================= ARCHITECTURE ======================= -->
+<section class="sec" id="architecture" aria-labelledby="ar-h">
+  <div class="wrap">
+    <h2 id="ar-h">One controller, three zones, one switching pattern.</h2>
+    <p class="lede">Everything below describes the same prototype: an ESP32-S3, three 24 GHz mmWave sensors (S3KM1110 modules), three PIR sensors, three LED light indicators and three 5 V DC motor/fan loads switched by logic-level N-channel MOSFETs.</p>
+
+    <div class="tree" role="group" aria-label="System architecture: the ESP32-S3 connects to three zones, each with a mmWave and PIR pair, a light indicator and a fan">
+      <div class="node main"><b>ESP32-S3</b>reads 6 sensors · runs 3 zone state machines<small>drives MOSFET gates, LEDs, OLED (I²C), buzzer</small></div>
+      <div class="vline"></div>
+      <div class="hbus"></div>
+      <div class="tcols">
+        <div class="tcol"><div class="vline top"></div><div class="zt">Zone 1</div><div class="node sense"><b>mmWave + PIR</b><small>S3KM1110 module + PIR sensor</small></div><div class="vline"></div><div class="node load"><b>Light + Fan</b><small>LED indicator + 5 V DC motor/fan via MOSFET</small></div></div>
+        <div class="tcol"><div class="vline top"></div><div class="zt">Zone 2</div><div class="node sense"><b>mmWave + PIR</b><small>S3KM1110 module + PIR sensor</small></div><div class="vline"></div><div class="node load"><b>Light + Fan</b><small>LED indicator + 5 V DC motor/fan via MOSFET</small></div></div>
+        <div class="tcol"><div class="vline top"></div><div class="zt">Zone 3</div><div class="node sense"><b>mmWave + PIR</b><small>S3KM1110 module + PIR sensor</small></div><div class="vline"></div><div class="node load"><b>Light + Fan</b><small>LED indicator + 5 V DC motor/fan via MOSFET</small></div></div>
+      </div>
+      <div class="tperiph">
+        <div class="node"><b>0.9-inch I²C OLED</b><small>zone states and timers</small></div>
+        <div class="node"><b>Buzzer</b><small>audible feedback</small></div>
+        <div class="node"><b>Override buttons</b><small>one manual override per zone</small></div>
+        <div class="node"><b>Low-voltage supply</b><small>5 V load rail · common ground</small></div>
+      </div>
+    </div>
+
+    <h3>Per-zone signal chain</h3>
+    <div class="chain" aria-label="Signal chain for one zone">
+      <div class="node"><b>Sensors</b><small>PIR + mmWave</small></div><span class="arr" aria-hidden="true">›</span>
+      <div class="node"><b>ESP32-S3</b><small>fusion + timers</small></div><span class="arr" aria-hidden="true">›</span>
+      <div class="node"><b>Zone state</b><small>OCCUPIED, GRACE, VACANT…</small></div><span class="arr" aria-hidden="true">›</span>
+      <div class="node"><b>GPIO</b><small>3.3 V logic</small></div><span class="arr" aria-hidden="true">›</span>
+      <div class="node"><b>MOSFET gate</b><small>switch only</small></div><span class="arr" aria-hidden="true">›</span>
+      <div class="node"><b>5 V motor/fan</b><small>and LED indicator</small></div>
+    </div>
+    <p>Workflow: read sensors, classify each zone as OCCUPIED, GRACE or VACANT (or MANUAL OVERRIDE / DEGRADED), switch that zone's loads, show state, and log events for energy and accuracy analysis.</p>
+
+    <h3 id="pe-h">Power electronics: switching a 5 V motor with a MOSFET</h3>
+    <div class="dark glass" style="border-radius:30px;padding:clamp(18px,3vw,36px);background:linear-gradient(160deg,#35200f,#1f120b);border-color:rgba(255,214,160,.2)">
+      <div class="chips" style="margin-top:0"><span class="badge-lv"><i></i>Low-voltage prototype · 5 V DC</span><span class="chip" style="color:#f6ead9">One channel shown; the same circuit is repeated for each zone</span></div>
+      <div class="pe" id="pe" data-gate="1">
+        <div>
+          <svg viewBox="0 0 760 450" role="img" aria-label="Circuit: ESP32-S3 GPIO drives a MOSFET gate with a 10 kilo-ohm pulldown to ground. The motor sits between the plus 5 volt rail and the MOSFET drain, with a flyback diode across it. The MOSFET source and the supply ground are common with the controller ground.">
+            <text class="t" x="85" y="30">+5 V supply rail</text>
+            <text class="t" x="85" y="428">GND rail (common ground)</text>
+            <line class="w" x1="85" y1="60" x2="700" y2="60" style="stroke:#ff9a5a"/>
+            <line class="w gnd" x1="85" y1="390" x2="700" y2="390"/>
+            <!-- supply -->
+            <rect class="part" x="40" y="170" width="90" height="100" rx="10"/>
+            <text class="t" x="85" y="214" text-anchor="middle">Low-voltage</text><text class="t" x="85" y="232" text-anchor="middle">5 V supply</text>
+            <path class="w" style="stroke:#ff9a5a" d="M85 170 V60"/><path class="w gnd" d="M85 270 V390"/>
+            <text class="t2" x="94" y="130">+</text><text class="t2" x="94" y="340">−</text>
+            <!-- motor -->
+            <path class="w" style="stroke:#ff9a5a" d="M520 60 V114"/>
+            <circle class="part" cx="520" cy="150" r="36"/>
+            <text x="520" y="158" text-anchor="middle" style="font:700 24px var(--font-display);fill:#f6ead9">M</text>
+            <text class="t2" x="532" y="90">Motor +  to +5 V</text>
+            <text class="t2" x="534" y="214">Motor −  to drain</text>
+            <path class="w" d="M520 186 V273 H490"/>
+            <!-- diode -->
+            <path class="w" style="stroke:#ff9a5a" d="M520 60 H620 V138"/>
+            <path class="w" d="M620 172 V273 H520"/>
+            <path class="part" d="M606 172 H634 L620 144 Z"/>
+            <line x1="605" y1="140" x2="635" y2="140" stroke="#f2b552" stroke-width="3"/>
+            <text class="t" x="645" y="150">1N4007</text><text class="t2" x="645" y="167">flyback diode</text><text class="t2" x="645" y="183">across motor</text>
+            <circle cx="520" cy="60" r="4.5" fill="#ff9a5a"/><circle cx="520" cy="273" r="4.5" fill="#f2b552"/>
+            <!-- mosfet -->
+            <path class="w" d="M474 262 V352"/>
+            <path class="w" d="M490 262 V284 M490 296 V318 M490 330 V352"/>
+            <path class="w" d="M490 341 H520 V390"/><path class="w" d="M490 307 H520"/>
+            <path d="M505 302 l-12 5 12 5z" fill="#f2b552"/>
+            <text class="t2" x="500" y="256">D</text><text class="t2" x="528" y="358">S</text><text class="t2" x="456" y="258">G</text>
+            <text class="t" x="520" y="424" text-anchor="middle">Logic-level N-channel MOSFET</text>
+            <!-- gate drive -->
+            <rect class="part" x="150" y="262" width="130" height="90" rx="10"/>
+            <text class="t" x="215" y="300" text-anchor="middle">ESP32-S3</text><text class="t2" x="215" y="320" text-anchor="middle">GPIO output</text>
+            <path class="w sig" d="M280 307 H474"/>
+            <text class="t2" x="372" y="297" text-anchor="middle">3.3 V logic to gate only</text>
+            <path class="w gnd" d="M215 352 V390"/>
+            <text class="t2" x="223" y="378">controller GND</text>
+            <!-- pulldown -->
+            <circle cx="420" cy="307" r="4.5" fill="#ff9a5a"/>
+            <path class="w gnd" d="M420 307 V326"/>
+            <rect class="part" x="410" y="326" width="20" height="40" rx="2"/>
+            <path class="w gnd" d="M420 366 V390"/>
+            <text class="t" x="400" y="340" text-anchor="end">10 kΩ</text><text class="t2" x="400" y="356" text-anchor="end">gate pulldown</text>
+            <!-- live current -->
+            <g class="iflow" fill="none" stroke="#ffd88f" stroke-width="3.5" stroke-linecap="round">
+              <path class="flow" d="M520 60 V114"/><path class="flow" d="M520 186 V273 H490"/><path class="flow" d="M490 341 H520 V390"/>
+            </g>
+            <circle class="motor-glow" cx="520" cy="150" r="46" fill="none" stroke="#ffd88f" stroke-width="3"/>
+          </svg>
+          <div class="seg" role="group" aria-label="MOSFET gate state">
+            <button type="button" data-g="1" class="on" aria-pressed="true">GPIO HIGH</button><button type="button" data-g="0" aria-pressed="false">GPIO LOW</button>
+          </div>
+          <p class="readout" id="peRead" aria-live="polite"></p>
+        </div>
+        <div>
+          <h4 style="margin-top:0">Connections to build</h4>
+          <ol>
+            <li>Motor positive to the 5 V supply.</li>
+            <li>Motor negative to the MOSFET drain.</li>
+            <li>MOSFET source to GND.</li>
+            <li>10 kΩ resistor from the gate to GND (gate pulldown).</li>
+            <li>Flyback diode across the motor terminals, cathode to +5 V and anode to the drain.</li>
+            <li>Controller GND and load supply GND joined: a common ground.</li>
+            <li>ESP32-S3 GPIO connects to the MOSFET gate only.</li>
+          </ol>
+          <div class="note warn" style="background:rgba(242,181,82,.1)"><b>Never direct.</b> A GPIO pin cannot supply motor current. It only drives the gate; the MOSFET carries the load current from the supply.</div>
+          <p class="sub" style="font-size:.92rem">Part selection: choose a MOSFET whose on-resistance is specified at a 3.3 V gate voltage and whose current rating comfortably exceeds the motor's start-up current. Size the 5 V supply for all three motors starting together.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>Known engineering challenges</h3>
+    <div class="grid g2">
+      <div class="glass tight"><span class="card-t">Fans and curtains</span>They reflect radar. Tune sensitivity, limit range, mount away from the fan's line of sight, and test "empty room, fan running".</div>
+      <div class="glass tight"><span class="card-t">Placement</span>Height and angle change what both sensors see, so several placements are tested.</div>
+      <div class="glass tight"><span class="card-t">Sunlight and heat</span>They can trigger PIR; the test is documented, not assumed.</div>
+      <div class="glass tight"><span class="card-t">Zone boundaries and corridors</span>Detection leaking from a corridor or neighbouring zone causes false occupancy; limit range and tune per zone.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= COMPONENTS ======================= -->
+<section class="sec" id="components" aria-labelledby="co-h">
+  <div class="wrap">
+    <h2 id="co-h">Every component, and why it is there.</h2>
+    <p class="lede">Fourteen parts make up the prototype. Hover or focus a card to lift it; filter by role.</p>
+    <div class="seg" id="ccf" role="group" aria-label="Filter components by role"></div>
+    <div class="ccards" id="ccards"></div>
+
+    <h3>Bill of materials</h3>
+    <p>Indicative costs are not yet confirmed for the three-zone design. The original single-zone estimate in the project plan was ₹2,500–4,000; the total for three zones will be recalculated from the final parts list.</p>
+    <div data-t="t6" data-cap="Bill of materials for the three-zone prototype"></div>
+
+    <h3>Connection map</h3>
+    <p>Pin numbers are intentionally left to be filled in from the built prototype, so this page never disagrees with the firmware.</p>
+    <div data-t="t7" data-cap="Connection map between modules"></div>
+
+    <h3>Why these technologies</h3>
+    <div data-t="t10" data-cap="Reasons for each technology choice"></div>
+  </div>
+</section>
+
+<!-- ======================= ENERGY MODEL ======================= -->
+<section class="sec" id="energy" aria-labelledby="en-h">
+  <div class="wrap">
+    <h2 id="en-h">Energy loss calculator.</h2>
+    <div class="bandhead"><span class="tag t-assume">Scenario Model</span><span class="tag t-assume">Illustrative Assumptions</span><span class="tag t-todo">Not Yet Measured</span></div>
+    <p class="lede">Annual waste = rooms × load (kW) × vacant-but-ON hours per day × 220 days. Pick a scenario or drag the sliders.</p>
+    <p>Each control node is assumed to draw 1.5 W continuously. Tariff ₹8/kWh, deployment ₹3,000 per room, 0.75 kg CO₂/kWh. These are assumptions to verify, not measurements, and the real standby power of the three-zone controller is listed under <a href="#measurements">Prototype Measurements</a> as not yet measured.</p>
+    <div class="glass" style="margin-top:20px">
+      <div class="seg" id="presets" role="group" aria-label="Scenario presets"></div>
+      <div id="sliders"></div>
+      <div class="kpis" id="kpis" aria-live="polite"></div>
+    </div>
+    <h3>Table 1: Scenario assumptions</h3><div data-t="t1" data-cap="Table 1: scenario assumptions"></div>
+    <h3>Table 2: Estimated annual loss (lights and fans)</h3><div data-t="t2" data-cap="Table 2: estimated annual loss"></div>
+    <h3>Table 3: Recoverable savings, net of node consumption</h3><div data-t="t3" data-cap="Table 3: recoverable savings"></div>
+    <div class="note"><b>Takeaways from the model.</b> Savings scale with vacant-but-ON hours; in a well-run campus (Low case) it is not worth installing. Node standby use (about 788 kWh/yr under the 1.5 W assumption) is about 11% of base-case recovered energy, so low-power design matters. AC would add about 2,640 kWh and ₹21,000 per year for 10 rooms (1.5 kW, 1 h/day, 80% capture) but needs compressor-safe handling, so it is out of scope.</div>
+
+    <div class="divider-t" id="measurements">
+      <h3 style="margin-top:0">Prototype Measurements</h3>
+      <div class="bandhead"><span class="tag t-todo">Not measured yet</span></div>
+      <p>These cards stay empty until the experiments are run. Nothing here is estimated, simulated or copied from the scenario model. To fill them in, edit the <code>MEASUREMENTS</code> list at the top of the script.</p>
+      <div class="meas" id="meas"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= SIMULATION ======================= -->
+<section class="sec dark" id="simulation" aria-labelledby="si-h">
+  <div class="wrap">
+    <h2 id="si-h">Try the three-zone controller.</h2>
+    <p class="lede">Switch the sensing mode, then give each zone its own inputs. Simulate a person who sits still: PIR drops out, the mmWave sensor may keep the zone occupied. Zones never affect each other.</p>
+    <div class="timing">
+      <div><b>Simulation timing</b>Accelerated: the grace period here is <span id="gSec">8</span> s so you can watch it. This is not a recommended timeout.</div>
+      <div><b>Real-room timing</b>Set per room, likely several minutes, and to be decided from testing. The 20–30 s bench timeout in the project plan is also a test setting only.</div>
+    </div>
+    <p class="sub" style="margin-bottom:4px">Sensing mode</p>
+    <div class="seg" id="modes" role="group" aria-label="Sensing mode"></div>
+    <div class="seg" role="group" aria-label="Demo shortcuts">
+      <button type="button" id="bLeave">Everyone leaves</button><button type="button" id="bReset">Reset demo</button>
+    </div>
+    <p class="sub" id="hint" aria-live="polite"></p>
+    <div class="zsims" id="zsims"></div>
+
+    <div class="smwrap">
+      <h3 style="margin-top:0">State machine</h3>
+      <div class="seg" id="smz" role="group" aria-label="Zone shown in the state machine diagram"></div>
+      <svg class="sm" viewBox="0 -34 900 410" role="img" aria-label="Occupancy state machine. OCCUPIED goes to GRACE when both sensors are clear; GRACE returns to OCCUPIED when presence returns, or goes to VACANT when the timer expires; VACANT returns to OCCUPIED on any presence. MANUAL OVERRIDE and DEGRADED are entered from any state.">
+        <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="#f2b552"/></marker></defs>
+        <rect class="grp" x="6" y="36" width="888" height="124" rx="22"/>
+        <text class="al" x="30" y="152" style="text-anchor:start;fill:#d1bba0;font-weight:500">Automatic occupancy cycle</text>
+        <g class="node-g" data-s="OCCUPIED"><rect class="nb" x="20" y="56" width="170" height="76" rx="14"/><text class="nt" x="105" y="92">OCCUPIED</text><text class="ns" x="105" y="114">Loads ON</text></g>
+        <g class="node-g" data-s="GRACE"><rect class="nb" x="365" y="56" width="170" height="76" rx="14"/><text class="nt" x="450" y="92">GRACE</text><text class="ns" x="450" y="114">Loads ON · timer running</text></g>
+        <g class="node-g" data-s="VACANT"><rect class="nb" x="710" y="56" width="170" height="76" rx="14"/><text class="nt" x="795" y="92">VACANT</text><text class="ns" x="795" y="114">Loads OFF</text></g>
+        <path class="ar" marker-end="url(#ah)" d="M190 88 H365"/><text class="al" x="277" y="58">both sensors clear:</text><text class="al" x="277" y="73" style="fill:#d1bba0;font-weight:500;font-size:11px">start grace timer</text>
+        <path class="ar" marker-end="url(#ah)" d="M365 114 H190"/><text class="al" x="277" y="130">presence returns:</text><text class="al" x="277" y="145" style="fill:#d1bba0;font-weight:500;font-size:11px">reset timer</text>
+        <path class="ar" marker-end="url(#ah)" d="M535 88 H710"/><text class="al" x="622" y="58">timer expires:</text><text class="al" x="622" y="73" style="fill:#d1bba0;font-weight:500;font-size:11px">loads OFF</text>
+        <path class="ar" marker-end="url(#ah)" d="M795 56 C795 -24 105 -24 105 56"/><text class="al" x="450" y="-18">PIR OR mmWave detects presence: OCCUPIED, loads ON</text>
+        <g class="node-g" data-s="MANUAL OVERRIDE"><rect class="nb" x="120" y="280" width="260" height="84" rx="14"/><text class="nt" x="250" y="316">MANUAL OVERRIDE</text><text class="ns" x="250" y="338">Loads as chosen · automation paused</text></g>
+        <g class="node-g" data-s="DEGRADED"><rect class="nb" x="520" y="280" width="260" height="84" rx="14"/><text class="nt" x="650" y="312">DEGRADED</text><text class="ns" x="650" y="334">One sensor down: longer grace</text><text class="ns" x="650" y="350">Both down: loads fail ON</text></g>
+        <path class="ar dash" marker-end="url(#ah)" d="M210 160 V280"/><text class="al" x="202" y="226" style="text-anchor:end">button pressed</text>
+        <path class="ar dash" marker-end="url(#ah)" d="M290 280 V160"/><text class="al" x="298" y="226" style="text-anchor:start">button again</text>
+        <path class="ar dash" marker-end="url(#ah)" d="M610 160 V280"/><text class="al" x="602" y="226" style="text-anchor:end">sensor fault or timeout</text>
+        <path class="ar dash" marker-end="url(#ah)" d="M690 280 V160"/><text class="al" x="698" y="226" style="text-anchor:start">sensor recovers</text>
+      </svg>
+      <p class="sub" style="font-size:.9rem">Solid highlight: the zone's current state. Dashed outline: the automatic state running underneath a manual or degraded mode.</p>
+      <h4>Recent transitions</h4>
+      <ol class="log" id="log" aria-label="Recent state transitions"></ol>
+    </div>
+
+    <h3>Table 7: Controller states</h3>
+    <div data-t="t8" data-cap="Controller states"></div>
+    <h3>Tunable parameters</h3>
+    <div data-t="t9" data-cap="Tunable parameters"></div>
+  </div>
+</section>
+
+<!-- ======================= RESEARCH ======================= -->
+<section class="sec" id="research" aria-labelledby="re-h">
+  <div class="wrap">
+    <h2 id="re-h">The research question.</h2>
+    <div class="rq">
+      <p class="q-l">Core question</p>
+      <blockquote>Can a low-cost, camera-free hybrid PIR + 24 GHz mmWave system improve zone-level occupancy detection and reduce unnecessary classroom energy consumption?</blockquote>
+    </div>
+    <h3>Where the novelty is</h3>
+    <div class="nov">
+      <div>Implementation<small>a complete, low-cost build</small></div>
+      <div>Zone-based control<small>three independent zones</small></div>
+      <div>Hybrid sensing<small>PIR with 24 GHz mmWave</small></div>
+      <div>Experimental evaluation<small>against PIR-only and mmWave-only</small></div>
+      <div>Classroom-specific testing<small>fans, curtains, corridors</small></div>
+    </div>
+    <div class="note warn"><b>Not claimed as novel:</b> PIR sensing, mmWave presence sensing, and occupancy-based automation are all established. The contribution is how they are combined, applied per zone and evaluated in a classroom-like setting.</div>
+
+    <h3>Literature and research gap</h3>
+    <div class="grid g3">
+      <div class="glass tight"><span class="card-t">Overviews</span>Nguyen &amp; Aiello (2013), Dong et al. (2019), Chen et al. (2018): sensor range, accuracy limits, privacy and cost trade-offs.</div>
+      <div class="glass tight"><span class="card-t">In practice</span>Agarwal et al. (2010): PIR and door sensors drove building control in a university, so campus-scale control is feasible.</div>
+      <div class="glass tight"><span class="card-t">PIR limits and fusion</span>Labeodan et al. (2015) show PIR struggles with low motion; Dodier et al. (2006) show fusing sensors improves detection.</div>
+      <div class="glass tight"><span class="card-t">Savings potential</span>Williams et al. (2012): meaningful occupancy-sensor savings, US-focused, hence scenarios plus a local audit.</div>
+      <div class="glass tight"><span class="card-t">Radar</span>Manufacturer and chip-vendor documentation describe mmWave presence sensing. Add 2–3 peer-reviewed radar-occupancy papers.</div>
+    </div>
+    <div class="note key"><b>Gap:</b> a low-cost, camera-free, offline PIR + 24 GHz mmWave controller with zone-level switching, evaluated in an Indian classroom-like setting against PIR-only and mmWave-only baselines, with ceiling-fan interference in focus.</div>
+    <h3>Comparison with existing approaches</h3>
+    <div data-t="t11" data-cap="Comparison with existing approaches"></div>
+  </div>
+</section>
+
+<!-- ======================= TESTING ======================= -->
+<section class="sec" id="testing" aria-labelledby="ts-h">
+  <div class="wrap">
+    <h2 id="ts-h">Experimental matrix.</h2>
+    <p class="lede">Three configurations (PIR-only, mmWave-only, hybrid) under identical conditions, with at least 20 trials per scenario per configuration (to fix with the guide). No results have been collected yet, so every cell is a placeholder.</p>
+    <div class="bandhead"><span class="tag t-todo">No data collected</span><span class="tag t-hyp">Hypotheses shown only on request</span></div>
+    <div class="seg" id="mxv" role="group" aria-label="Matrix view"></div>
+    <div id="matrix"></div>
+
+    <h3>Metrics by configuration</h3>
+    <div id="mmetrics"></div>
+    <h3>Metric definitions</h3>
+    <div data-t="t13" data-cap="Metric definitions and targets"></div>
+    <div class="note">Targets are goals, not predictions. If fan reflections force conservative mmWave settings, the report will say so.</div>
+
+    <h3>Expected results <span class="tag t-hyp">Hypotheses</span></h3>
+    <ul>
+      <li>Hybrid sensing is designed to lose seated-still occupants less often than PIR-only.</li>
+      <li>Hybrid may have more extra ON time than PIR-only if mmWave triggers on fans.</li>
+      <li>The prototype shows how the scenario-model estimates become a measurable test.</li>
+    </ul>
+    <p><b>Possible applications:</b> classrooms, labs, seminar rooms, offices, libraries, hostel common areas, restrooms and corridors, each with its own timeout.</p>
+  </div>
+</section>
+
+<!-- ======================= TIMELINE ======================= -->
+<section class="sec" id="timeline" aria-labelledby="tl-h">
+  <div class="wrap">
+    <h2 id="tl-h">Feasibility and 12-week plan.</h2>
+    <div class="grid g4">
+      <div class="glass tight"><span class="card-t">Technical</span>Common modules with plenty of documentation. The main risk is mmWave tuning across three zones, which has scheduled time.</div>
+      <div class="glass tight"><span class="card-t">Economic</span>Prototype cost is to be confirmed from the final parts list. Deployment payback depends on real waste, so audit first.</div>
+      <div class="glass tight"><span class="card-t">Safety</span>Low-voltage 5 V DC loads. Any 230 V work needs rated parts and a qualified electrician; students never touch live mains.</div>
+      <div class="glass tight"><span class="card-t">Skills</span>Basic C/C++, breadboard wiring, data logging, with guidance.</div>
+    </div>
+    <h3>Timeline</h3>
+    <ol class="tl" id="tl"></ol>
+    <h3>Team roles</h3>
+    <ul>
+      <li>Hardware and circuit</li><li>Firmware and fusion logic</li><li>Testing and data analysis</li><li>Research, energy audit and economics</li><li>Enclosure, integration, documentation and demo</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ======================= SAFETY ======================= -->
+<section class="sec" id="safety" aria-labelledby="sf-h">
+  <div class="wrap">
+    <h2 id="sf-h">Safety, privacy and ethics.</h2>
+    <div class="glass" style="border-color:rgba(201,143,26,.7);box-shadow:var(--shadow-m),0 0 40px rgba(227,162,43,.2)">
+      <span class="badge-lv"><i></i>Low-voltage prototype</span>
+      <p style="margin-top:14px;font-size:1.1rem">The student prototype runs from a low-voltage supply (5 V DC loads). It does not switch live 230 V mains.</p>
+      <p>Any building-mains implementation requires appropriately rated hardware, protection and qualified electrical supervision. Students do not wire, open or test anything connected to building mains.</p>
+    </div>
+    <h3>Risk register</h3>
+    <div data-t="t14" data-cap="Risks, impact and mitigation"></div>
+    <p><b>Limitations:</b> one test room will not generalise to all rooms; no AC control; costs and tariffs are estimates; all sensor performance statements depend on module configuration, placement and calibration.</p>
+    <h3>Future improvements</h3>
+    <div class="grid g4" id="fut"></div>
+  </div>
+</section>
+
+<!-- ======================= CONCLUSION ======================= -->
+<section class="sec dark" id="conclusion" aria-labelledby="cn-h">
+  <div class="wrap">
+    <h2 id="cn-h">A modest, testable design for a real problem.</h2>
+    <p class="lede">EcoSwitch tackles electricity wasted on empty rooms with a three-zone, low-voltage prototype. PIR brings low cost and speed; 24 GHz mmWave sensing adds awareness during low-motion periods, with no cameras. The scenario model shows that value depends on actual waste, so the project starts with measurement and reports honestly, including what has not been measured yet.</p>
+    <div class="note" style="background:rgba(242,181,82,.1)"><b>Request:</b> approval to proceed with Phase 0 (campus audit) and Phase 1 (design).</div>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="pdf.pdf" download="EcoSwitch-Technical.pdf">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 20h16"/></svg>
+        Download technical PDF
+      </a>
+      <a class="btn btn-glass" style="color:#f6ead9;background:rgba(255,232,200,.08);border-color:rgba(255,214,160,.4)" href="#top">Back to top</a>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <div>
+      <a class="brand" href="#top"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="2" width="28" height="28" rx="8" fill="#bf4d18"/><path d="M17.5 5 9 18h6l-1.5 9L23 13.5h-6.2z" fill="#ffe2ad"/></svg>EcoSwitch</a>
+      <p>Hybrid PIR + 24 GHz mmWave zone-level occupancy switching · PCCOE, Pune · A low-voltage research prototype. Figures marked as assumptions need verification; nothing here is a measured result unless it is tagged Measured.</p>
+    </div>
+    <div class="acts">
+      <a class="btn btn-primary" href="pdf.pdf" download="EcoSwitch-Technical.pdf">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 20h16"/></svg>
+        Download PDF
+      </a>
+      <a class="btn btn-glass btn-sm" href="pdf.pdf" target="_blank" rel="noopener">Open PDF</a>
+    </div>
+  </div>
+</footer>
+<noscript><p style="padding:20px;text-align:center">Tables, the calculator and the simulator need JavaScript. The rest of this page, and the PDF link, work without it.</p></noscript>
+<script>
+"use strict";
+/* ============================================================
+   MEASUREMENTS: fill these in ONLY with values collected from
+   the prototype. null = "Not measured yet".
+   ============================================================ */
+const MEASUREMENTS=[
+ {id:"base",label:"Baseline energy",unit:"Wh",hint:"Always-ON loads over the test period",value:null},
+ {id:"eco",label:"EcoSwitch energy",unit:"Wh",hint:"Same loads under hybrid control",value:null},
+ {id:"red",label:"Energy reduction",unit:"%",hint:"(baseline − EcoSwitch) / baseline",value:null},
+ {id:"fv",label:"False vacancy",unit:"%",hint:"Occupied time with loads wrongly off",value:null},
+ {id:"fo",label:"False occupancy",unit:"s",hint:"Extra ON time in an empty zone beyond the timeout",value:null},
+ {id:"rt",label:"Response time",unit:"s",hint:"Entry to load ON",value:null},
+ {id:"sb",label:"Standby power",unit:"W",hint:"Controller draw, three-zone build",value:null}
+];
+/* Test results: results[scenarioIndex][config] = {metric: value}. Empty until experiments are run. */
+const RESULTS={};
+
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+
+/* ============================================================
+   TABLE DATA (pipe-separated rows; first row = header)
+   ============================================================ */
+const T={
+t1:["Parameter|Low|Base|High","Lights + fans per room|100 W lights + 200 W fans = 300 W|8 × 20 W LED + 4 × 75 W fans = 460 W|~280 W older tubes + 5 × 80 W fans = 680 W","Vacant-but-ON h/room/day|0.5 h|1.5 h|3 h","Share of waste captured|60%|80%|90%"],
+t2:["|Low|Base|High","Waste per room per day|0.15 kWh|0.69 kWh|2.04 kWh","Waste per room per year|33 kWh|151.8 kWh|448.8 kWh","Gross waste, 60 rooms|1,980 kWh|9,108 kWh|26,928 kWh","Gross cost at ₹8/kWh|₹15,840|₹72,864|₹2,15,424"],
+t3:["|Low|Base|High","Recovered waste|1,188 kWh|7,286 kWh|24,235 kWh","Minus nodes' own use (assumed 1.5 W)|−788 kWh|−788 kWh|−788 kWh","Net savings|~400 kWh|~6,498 kWh|~23,447 kWh","Net savings per year|~₹3,200|~₹51,984|~₹1,87,574","Deployment (60 × ₹3,000)|₹1,80,000|₹1,80,000|₹1,80,000","Simple payback|~56 years|~3.5 years|~1 year","CO₂ avoided (0.75 kg/kWh)|~0.3 t|~4.9 t|~17.6 t"],
+t4:["Technology|Detects|Strength|Caveat|Relevance","PIR|Infrared change / movement|Very cheap, simple, low power|Can miss a stationary person|4","Ultrasonic|Distance to reflector|Cheap, simple ranging|Cannot identify a person; furniture interferes|3","IR beam-break|Beam interruption|Deterministic at fixed points|Needs alignment; only interruption|4","24 GHz mmWave|Reflections: motion and presence|Can sense low-motion presence, module-dependent|Placement and calibration matter|5","Camera|Visual presence, count, location|Rich information|Privacy, lighting, processing|2","Thermal camera|Heat signatures|Works without light|Costly; privacy concerns|2","CO₂ sensor|Air CO₂ change|Aggregate occupancy|Slow; ventilation affects it|2","Smart meter / current|Electrical consumption|Real load data|Consumption is not occupancy|3","Wi-Fi / BLE|Device presence|Reuses infrastructure|People may carry no device|2"],
+t5:["Situation|PIR|24 GHz mmWave|Hybrid (PIR + mmWave)","Person walks in|Detects quickly|Detects|Detected quickly","Person sits still|May lose detection|Can detect presence-related micro-movements, depending on module capability, sensitivity, placement and environmental conditions|Designed to reduce false-vacancy events compared with PIR-only sensing","Empty room, fan or curtain moving|Usually unaffected|May false-detect if untuned|Needs tuning","Sensor failure|Reduced coverage|Reduced reliability|Degrades to the working sensor","Cost and power|Very low|Moderate|Moderate"],
+t6:["Component|Part|Qty|Role|Indicative cost","Controller|ESP32-S3 board|1|Reads sensors, runs zone logic|₹500–700 (original estimate)","Presence sensing|S3KM1110 24 GHz mmWave module|3|One presence/motion sensor per zone|To be confirmed","Motion sensing|PIR sensor module|3|Fast motion detection per zone|₹80–150 each (original estimate)","Switching|Logic-level N-channel MOSFET|3|Low-side switch for each motor|To be confirmed","Protection|1N4007 diode|3|Flyback diode across each motor|To be confirmed","Light indicator|LED with current-limiting resistor|3|Represents each zone's lighting|To be confirmed","Resistors|10 kΩ and others|As built|Gate pulldowns, LED limiting|To be confirmed","Loads|5 V DC motor/fan|3|Fan load per zone|To be confirmed","Display|0.9-inch I²C OLED|1|Zone states and timers|To be confirmed","Feedback|Buzzer|1|Audible feedback|To be confirmed","Override|Push button / switch|3|Manual override per zone|To be confirmed","Power|Low-voltage supply|1|5 V load rail|To be confirmed","Assembly|Breadboard, jumper wires|As built|Prototype wiring|To be confirmed"],
+t7:["Signal|From|To|Note","PIR output (×3)|PIR module, zones 1–3|ESP32-S3 GPIO inputs|Set the module's minimum hold time; use firmware timers","mmWave data (×3)|S3KM1110 module, zones 1–3|ESP32-S3 inputs|Presence output and/or serial data as supported by the module; check logic levels before connecting","Fan drive (×3)|ESP32-S3 GPIO outputs|MOSFET gates|Gate only; 10 kΩ pulldown from each gate to GND","Fan power (×3)|+5 V supply|Motor +; motor − to MOSFET drain|MOSFET source to GND; 1N4007 across the motor","Light indicator (×3)|ESP32-S3 GPIO outputs|LED + current-limiting resistor|One per zone","Manual override (×3)|Push button / switch|ESP32-S3 GPIO inputs|Debounce in firmware","OLED|ESP32-S3 I²C (SDA, SCL)|0.9-inch OLED|Shows zone states and timers","Buzzer|ESP32-S3 GPIO output|Buzzer|Drive method depends on buzzer type","Common ground|ESP32-S3 GND, supply GND, sensor GND|All joined|Required for MOSFET switching and sensor signals"],
+t8:["State|Meaning|Entry|Loads|Exit","OCCUPIED|Someone present in the zone|PIR motion or mmWave presence|Light ON, fan ON|Both clear → GRACE","GRACE|Possibly vacant; countdown|Both sensors clear|Stay ON|Presence → OCCUPIED; timer ends → VACANT","VACANT|Zone empty|Grace timer expired|Light OFF, fan OFF|PIR or mmWave presence → OCCUPIED","MANUAL OVERRIDE|User forced ON/OFF|Override button pressed|As chosen|Button pressed again (a timeout is also possible)","DEGRADED|One sensor not responding|Sensor fault or timeout|Working sensor with longer timeout; ON if both fail|Sensor recovers"],
+t9:["Parameter|Simulation (this page)|Bench prototype|Real room","Grace (off-delay) timeout|8 s, accelerated|20–30 s test setting|Likely several minutes, to be decided from testing","mmWave sensitivity|Not modelled|Tuned in testing|Depends on room and furniture","mmWave range|Not modelled|Limited to the test zone|Matched to zone size","Separate light/fan delays|Same|Same initially|Could differ"],
+t10:["Choice|Why|Alternatives","ESP32-S3|Low cost, documented, enough I/O planned for three zones plus OLED, buzzer and buttons, offline operation|Arduino Uno, Raspberry Pi","PIR sensor|Cheapest, lowest-power motion detection|Ultrasonic, IR beam-break","S3KM1110 24 GHz mmWave|Low-cost presence/motion sensing with no images|Camera, thermal, CO₂","Logic-level N-channel MOSFET|Can be driven by a 3.3 V GPIO; suited to low-voltage DC motors|Motor driver IC, transistor stage; relays for a future mains-rated build","Arduino framework (C++)|Easy for beginners|ESP-IDF, MicroPython","Offline decisions|No dependence on the internet|Cloud control"],
+t11:["Criterion|Timer / manual|PIR-only|Camera|Cloud BMS|EcoSwitch","Cost|Very low|Low|High|High|Low–moderate","Stationary occupants|N/A|Weak|Strong|Depends|Designed for improvement (to verify)","Privacy|Good|Good|Concerning|Depends|Good (no images)","Needs internet|No|No|Often|Yes|No","Setup effort|Low|Low|High|Very high|Moderate","Main risk|Wastes energy|False-offs|Privacy, cost|Complexity|mmWave false triggers"],
+t13:["Metric|Definition|Target","False-vacancy rate|Occupied periods with loads wrongly off|Hybrid well below PIR-only","False-occupancy time|Extra ON time in an empty zone beyond the timeout|Report honestly","Response time (ON)|Entry to load ON|Below ~2 s","Turn-OFF accuracy|Actual vs configured delay|Within ±5 s","Energy saved|(Always-ON − actual) / always-ON, from logs|Report the measured value","Standby power|Power of the control node|Compare with the 1.5 W assumption"],
+t14:["Risk|Impact|Mitigation","mmWave false triggers|Wasted energy|Sensitivity tuning, range limits, placement tests","False vacancy|Annoyance, system disabled|Both-agree off-rule, manual override","Mains hazard|Injury, fire|Low-voltage prototype; qualified electrician for any AC work","Sensor or controller failure|Loads stuck off or on|Fail-ON default, degraded mode","Assumed numbers differ|Wrong savings claims|Phase 0 audit, scenario labelling","Standby consumption|Cuts net savings|Measure it; low-power design","Privacy|Occupant concerns|No cameras or identity; only presence logged","RF exposure|Student concern|Low-power commercial modules; check datasheet compliance","Data protection|Compliance|DPDP Act 2023: no personal data collected; recheck if identification is added"]
+};
+$$("[data-t]").forEach(d=>{
+  const k=d.dataset.t,r=T[k].map(x=>x.split("|")),isT4=k=="t4";
+  d.className="tw";d.setAttribute("role","region");d.setAttribute("tabindex","0");d.setAttribute("aria-label",(d.dataset.cap||"Table")+" (scrollable)");
+  d.innerHTML="<table><thead><tr>"+r[0].map(h=>"<th scope=\"col\">"+h+"</th>").join("")+"</tr></thead><tbody>"+
+   r.slice(1).map(x=>"<tr"+(isT4?` data-s="${x[4]}"`:"")+">"+x.map((c,i)=>i==0?"<th scope=\"row\">"+c+"</th>":"<td>"+(isT4&&i==4?`<span class="stars" aria-label="${c} out of 5">${"★".repeat(c)}</span>`:c)+"</td>").join("")+"</tr>").join("")+"</tbody></table>";
+});
+
+/* ============================================================
+   ENERGY CALCULATOR (logic unchanged)
+   ============================================================ */
+const P={Low:[300,.5,60],Base:[460,1.5,80],High:[680,3,90]},
+S=[["rooms","Rooms",10,200,60,""],["w","Load per room (W)",100,1000,460," W"],["h","Vacant-but-ON h/day",.25,4,1.5," h"],["c","Capture share",40,100,80," %"],["t","Tariff (₹/kWh)",4,14,8,""]],V={};
+$("#sliders").innerHTML=S.map(s=>`<div class="sl"><label for="${s[0]}">${s[1]}</label><input type="range" id="${s[0]}" min="${s[2]}" max="${s[3]}" step="${s[0]=="h"?.25:1}" value="${s[4]}"><output id="o${s[0]}" for="${s[0]}"></output></div>`).join("");
+$("#presets").innerHTML=Object.keys(P).map(k=>`<button type="button" data-p="${k}" aria-pressed="false">${k} case</button>`).join("");
+const f=n=>Math.round(n).toLocaleString("en-IN");
+function calc(){
+  S.forEach(s=>{V[s[0]]=+$("#"+s[0]).value;$("#o"+s[0]).textContent=V[s[0]]+s[5]});
+  const g=V.rooms*V.w/1000*V.h*220,cap=g*V.c/100,own=V.rooms*1.5*8.76,net=cap-own,rs=net*V.t,dep=V.rooms*3000,pb=net>0?dep/rs:Infinity;
+  $("#kpis").innerHTML=[[f(g)+" kWh","Gross waste / year"],["₹"+f(g*V.t),"Gross cost / year"],[f(net)+" kWh","Net savings (after "+f(own)+" kWh assumed node use)"],["₹"+f(rs),"Net savings / year"],[pb==Infinity?"Never":pb.toFixed(1)+" yrs","Simple payback on ₹"+f(dep)],[(net*.75/1000).toFixed(1)+" t","CO₂ avoided / year"]]
+   .map(k=>`<div class="kpi"><b>${k[0]}</b><small>${k[1]}</small></div>`).join("")+
+   `<div class="kpi" style="grid-column:1/-1;background:transparent;box-shadow:none;border-style:dashed"><small><span class="tag t-assume" style="margin:0 6px 0 0">Scenario model</span>Every figure above follows from the illustrative assumptions on this page. None is a prototype measurement.</small></div>`;
+}
+$$("#sliders input").forEach(i=>i.oninput=()=>{$$("#presets button").forEach(b=>{b.classList.remove("on");b.setAttribute("aria-pressed","false")});calc()});
+$$("#presets button").forEach(b=>b.onclick=()=>{const p=P[b.dataset.p];$("#w").value=p[0];$("#h").value=p[1];$("#c").value=p[2];$("#rooms").value=60;$("#t").value=8;calc();
+  $$("#presets button").forEach(x=>{x.classList.toggle("on",x==b);x.setAttribute("aria-pressed",x==b)})});
+$("#presets button:nth-child(2)").click();
+
+/* prototype measurement cards */
+$("#meas").innerHTML=MEASUREMENTS.map(m=>{const has=m.value!==null&&m.value!==undefined&&m.value!=="";
+  return `<div class="mc${has?" has":""}"><b>${m.label}</b><div class="val">${has?esc(m.value)+" "+m.unit:"Not measured yet"}</div><small>${m.hint}</small><div style="margin-top:8px"><span class="tag ${has?"t-meas":"t-todo"}" style="margin:0">${has?"Measured":"Awaiting experiment"}</span></div></div>`}).join("");
+
+/* ============================================================
+   STAR FILTER
+   ============================================================ */
+$("#starf").innerHTML=[1,3,4,5].map(n=>`<button type="button" data-n="${n}" aria-pressed="false">${n==1?"All":n+"★ and up"}</button>`).join("");
+$$("#starf button").forEach(b=>b.onclick=()=>{$$("#starf button").forEach(x=>{x.classList.toggle("on",x==b);x.setAttribute("aria-pressed",x==b)});
+  $$("tr[data-s]").forEach(r=>r.style.display=+r.dataset.s>=+b.dataset.n?"":"none")});
+$("#starf button").click();
+
+/* ============================================================
+   SENSOR DIAGRAMS (PIR, mmWave)
+   ============================================================ */
+const readouts={
+ svPir:{empty:"<b>Room empty.</b> No infrared change in the field, so the PIR reports clear.",
+        walk:"<b>Movement detected.</b> A walking person changes the infrared pattern across the sensor's lens, so the PIR reports presence quickly.",
+        still:"<b>Low motion.</b> A person sitting still produces little change, so a PIR-only system may read the zone as clear. This is the false-vacancy case the mmWave sensor is meant to help cover."},
+ svMm:{empty:"<b>No target.</b> No moving or low-motion reflections are reported in the configured range.",
+       walk:"<b>Moving target detected.</b> A walking person changes the reflected signal strongly, so the sensor reports a moving target.",
+       still:"<b>Designed to maintain occupancy awareness during low-motion periods.</b> Presence-related micro-movements may still be picked up, depending on module capability, sensitivity, placement and environmental conditions."}
+};
+["svPir","svMm"].forEach(id=>{const box=$("#"+id);
+  const set=s=>{box.dataset.state=s;$$("button[data-s]",box).forEach(b=>{b.classList.toggle("on",b.dataset.s==s);b.setAttribute("aria-pressed",b.dataset.s==s)});$(".readout",box).innerHTML=readouts[id][s]};
+  $$("button[data-s]",box).forEach(b=>b.onclick=()=>set(b.dataset.s));set("walk")});
+$("#clutterChk").onchange=e=>{$("#svMm").dataset.clutter=e.target.checked?"1":"0";
+  if(e.target.checked)$("#svMm .readout").innerHTML="<b>Interference sources shown.</b> A rotating fan and a moving curtain can both return energy to the sensor. They are why 'empty room, fan running' is a test scenario and why range and sensitivity are tuned per zone."};
+
+/* ============================================================
+   CLASSROOM ILLUSTRATION (generated SVG, used twice)
+   ============================================================ */
+function roomSVG(p,compact){
+  const CX=[200,480,760],SY=176;
+  let s=`<svg viewBox="0 0 960 540" class="room" role="img" aria-label="Plan view of a classroom with three zones. Each zone has a ceiling-mounted mmWave and PIR sensor pair, a light, a fan and desks. An ESP32-S3 controller at the front wall sends data lines to each zone.">
+  <defs>
+   <radialGradient id="${p}glow"><stop offset="0" stop-color="#ffd27a" stop-opacity=".95"/><stop offset=".5" stop-color="#f0a030" stop-opacity=".35"/><stop offset="1" stop-color="#f0a030" stop-opacity="0"/></radialGradient>
+   <linearGradient id="${p}floor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6ead4"/><stop offset="1" stop-color="#e8d5b5"/></linearGradient>
+   <filter id="${p}sh" x="-5%" y="-5%" width="110%" height="115%"><feDropShadow dx="0" dy="8" stdDeviation="9" flood-color="#6b3b17" flood-opacity=".3"/></filter>
+   ${CX.map((c,i)=>`<clipPath id="${p}cl${i}"><path d="M${c} ${SY+10} L${c-125} ${SY+215} Q${c} ${SY+250} ${c+125} ${SY+215} Z"/></clipPath>`).join("")}
+  </defs>
+  <rect x="56" y="36" width="848" height="476" rx="14" fill="url(#${p}floor)" stroke="#5a3a24" stroke-width="8" filter="url(#${p}sh)"/>
+  <text class="t" x="480" y="28" text-anchor="middle">Front of classroom</text>`;
+  CX.forEach((c,i)=>{
+    s+=`<g data-zone="${i}">
+    <rect class="zone-rect" data-z="${i}" x="${c-136}" y="110" width="272" height="392" rx="12"/>
+    <text class="zl" x="${c-122}" y="134">Zone ${i+1}</text>
+    <path class="wire" d="M480 98 V106 H${c} V${SY-14}"/>
+    <path class="pir-field" data-z="${i}" d="M${c} ${SY+12} L${c-88} ${SY+130} Q${c} ${SY+152} ${c+88} ${SY+130} Z"/>
+    <path class="mm-field" data-z="${i}" d="M${c} ${SY+10} L${c-125} ${SY+215} Q${c} ${SY+250} ${c+125} ${SY+215} Z"/>
+    <g clip-path="url(#${p}cl${i})">${[0,1,2].map(()=>`<circle class="rng" data-z="${i}" cx="${c}" cy="${SY+10}" r="34" style="transform-origin:${c}px ${SY+10}px"/>`).join("")}</g>
+    <g transform="translate(${c-30},${SY-12})"><rect class="sensor" width="60" height="24" rx="5"/><circle class="sdome" cx="15" cy="12" r="7"/><rect class="spatch" x="30" y="5" width="24" height="14" rx="2"/></g>
+    <circle class="lamp-halo" data-z="${i}" cx="${c-78}" cy="${SY+80}" r="46" fill="url(#${p}glow)"/>
+    <circle class="lamp" data-z="${i}" cx="${c-78}" cy="${SY+80}" r="14"/>
+    <g class="fan" data-z="${i}"><g class="spin" style="transform-origin:${c+78}px ${SY+80}px">${[0,90,180,270].map(a=>`<ellipse class="fan-blade" cx="${c+78}" cy="${SY+62}" rx="7" ry="17" transform="rotate(${a} ${c+78} ${SY+80})"/>`).join("")}</g><circle cx="${c+78}" cy="${SY+80}" r="5" fill="#4a2f20"/></g>
+    ${[292,354,416].map(y=>[c-104,c+40].map(x=>`<rect class="desk" x="${x}" y="${y}" width="64" height="26" rx="4"/>`).join("")).join("")}
+    <g class="p-still" data-z="${i}"><circle class="person" cx="${c-72}" cy="388" r="9"/><ellipse class="person" cx="${c-72}" cy="402" rx="16" ry="8"/><circle class="micro-r" cx="${c-72}" cy="396" r="14"/></g>
+    <g class="p-walk" data-z="${i}" style="transform:translateY(0)"><circle class="person" cx="${c}" cy="270" r="9"/><ellipse class="person" cx="${c}" cy="284" rx="16" ry="8"/></g>`;
+    if(!compact){
+      s+=`<text class="t" x="${c+36}" y="${SY+4}">mmWave + PIR</text>
+      <text class="t" x="${c-78}" y="${SY+112}" text-anchor="middle">Light</text><text class="t" x="${c+78}" y="${SY+112}" text-anchor="middle">Fan</text>
+      <g class="chip" data-z="${i}" transform="translate(${c-122},466)"><rect class="chip-bg" data-z="${i}" width="244" height="28" rx="14"/><text class="chip-t" data-z="${i}" x="122" y="19"></text></g>`;
+    }
+    s+=`</g>`;
+  });
+  s+=`<g transform="translate(395,52)"><rect class="ctrl-glow" x="-8" y="-8" width="186" height="62" rx="14"/><rect class="ctrl-box" width="170" height="46" rx="9"/><text class="ctrl-t" x="85" y="22" text-anchor="middle">ESP32-S3</text><text class="ctrl-s" x="85" y="38" text-anchor="middle">zone controller</text></g></svg>`;
+  return s;
+}
+$$("[data-room]").forEach(d=>d.innerHTML=roomSVG(d.dataset.room,d.dataset.room=="hero"));
+
+/* ============================================================
+   THREE-ZONE ENGINE
+   ============================================================ */
+const G=8;let mode="Hybrid",simT=0,smZone=0;
+const Z=[0,1,2].map(i=>({i,pir:false,mm:false,pirF:false,mmF:false,man:0,st:"VACANT",cd:0,last:"VACANT"}));
+const MODES=["Hybrid","PIR-only","mmWave-only"];
+const HINTS={"Hybrid":"Try: Zone 2 holds a seated person (PIR off, mmWave on) and stays occupied while Zone 3 is empty. Turn both sensors off in a zone to start its countdown.",
+ "PIR-only":"Try: turn PIR off in Zone 2 while the person sits still. That zone goes to GRACE and then VACANT even though it is occupied: a false vacancy.",
+ "mmWave-only":"mmWave can hold a zone ON when someone is still, but a fan or corridor activity could cause false occupancy if it is not tuned out."};
+function usable(z){const u=[];if(mode!=="mmWave-only"&&!z.pirF)u.push("pir");if(mode!=="PIR-only"&&!z.mmF)u.push("mm");return u}
+function degraded(z){const n=usable(z).length;return n===0||(mode==="Hybrid"&&n===1)}
+function grace(z){return degraded(z)?G*2:G}
+function evalZone(z,tick){
+  const u=usable(z);
+  if(u.length===0){z.st="OCCUPIED";z.cd=grace(z);return}
+  if(u.some(k=>z[k])){z.st="OCCUPIED";z.cd=grace(z)}
+  else if(z.st==="OCCUPIED"){z.st="GRACE";z.cd=grace(z)}
+  else if(z.st==="GRACE"&&tick){z.cd--;if(z.cd<=0){z.st="VACANT";z.cd=0}}
+}
+function view(z){
+  const u=usable(z);let label=z.st,loads;
+  if(z.man){label="MANUAL OVERRIDE";loads=z.man===1}
+  else if(degraded(z)){label="DEGRADED";loads=u.length===0||z.st!=="VACANT"}
+  else loads=z.st!=="VACANT";
+  const key=label==="MANUAL OVERRIDE"?"MANUAL":label;
+  return {label,key,loads}
+}
+function sensorTxt(z,k){
+  const name=k=="pir"?"PIR":"mmWave",off=k=="pir"?mode==="mmWave-only":mode==="PIR-only";
+  if(z[k+"F"]===true||z[k=="pir"?"pirF":"mmF"])return `${name}: fault`;
+  if(off)return `${name}: not used in this mode`;
+  return `${name}: ${z[k]?(k=="pir"?"motion":"presence"):"clear"}`;
+}
+const MANL=["Auto","Forced ON","Forced OFF"];
+
+/* build UI shells */
+$("#modes").innerHTML=MODES.map(m=>`<button type="button" data-m="${m}" aria-pressed="false">${m}</button>`).join("");
+$("#smz").innerHTML=Z.map(z=>`<button type="button" data-z="${z.i}" aria-pressed="false">Zone ${z.i+1}</button>`).join("");
+$("#zsims").innerHTML=Z.map(z=>`<div class="zs" id="zs${z.i}" data-k="VACANT"><h3>Zone ${z.i+1}</h3>
+ <div><span class="sbadge s-VACANT" id="zb${z.i}">VACANT</span></div>
+ <div class="row"><button type="button" class="tgl" data-a="pir" aria-pressed="false">PIR sees motion</button><button type="button" class="tgl" data-a="mm" aria-pressed="false">mmWave sees presence</button></div>
+ <div class="bar" aria-hidden="true"><i id="zbar${z.i}"></i></div>
+ <p class="cdt" id="zcd${z.i}" aria-live="off"></p>
+ <div id="zld${z.i}"></div>
+ <div class="row"><button type="button" class="tgl" data-a="man" aria-pressed="false">Manual override: Auto</button></div>
+ <details><summary>Inject a sensor fault</summary><div class="row"><button type="button" class="tgl" data-a="pirF" aria-pressed="false">PIR fault</button><button type="button" class="tgl" data-a="mmF" aria-pressed="false">mmWave fault</button></div></details>
+ <p class="sub" style="font-size:.85rem;margin:8px 0 0" id="zsn${z.i}"></p></div>`).join("");
+$("#zoneCards").innerHTML=Z.map(z=>`<div class="zc" id="zc${z.i}" data-k="VACANT"><h3>Zone ${z.i+1}</h3><span class="sbadge s-VACANT" id="zcb${z.i}">VACANT</span>
+ <dl><dt>Sensor status</dt><dd id="zcs${z.i}"></dd><dt>Countdown timer</dt><dd id="zct${z.i}"></dd><dt>Load status</dt><dd id="zcl${z.i}"></dd><dt>Manual override</dt><dd id="zco${z.i}"></dd></dl></div>`).join("");
+
+$$("#modes button").forEach(b=>b.onclick=()=>{mode=b.dataset.m;Z.forEach(z=>evalZone(z,false));render()});
+$$("#smz button").forEach(b=>b.onclick=()=>{smZone=+b.dataset.z;render()});
+Z.forEach(z=>$$("#zs"+z.i+" [data-a]").forEach(b=>b.onclick=()=>{
+  const a=b.dataset.a;
+  if(a==="man")z.man=(z.man+1)%3;else z[a]=!z[a];
+  evalZone(z,false);render()}));
+$("#bLeave").onclick=()=>{Z.forEach(z=>{z.pir=false;z.mm=false;evalZone(z,false)});render()};
+$("#bReset").onclick=()=>init();
+
+function logT(msg){const L=$("#log");const li=document.createElement("li");li.textContent=msg;L.prepend(li);while(L.children.length>7)L.lastChild.remove()}
+let firstRender=true;
+function render(){
+  const pills=[];
+  Z.forEach(z=>{
+    const v=view(z),on=v.loads,i=z.i;
+    if(!firstRender&&v.label!==z.last)logT(`t+${simT}s  Zone ${i+1}: ${z.last} → ${v.label}`);
+    z.last=v.label;
+    /* simulator panel */
+    const zs=$("#zs"+i);zs.dataset.k=v.key;
+    const zb=$("#zb"+i);zb.textContent=v.label;zb.className="sbadge s-"+v.key;
+    const ta=$$("[data-a]",zs);
+    ta.forEach(b=>{const a=b.dataset.a,p=a==="man"?z.man!==0:!!z[a];b.classList.toggle("on",p);b.setAttribute("aria-pressed",p);if(a==="man")b.textContent="Manual override: "+MANL[z.man]});
+    const gr=grace(z),showT=z.st==="GRACE"&&!z.man;
+    $("#zbar"+i).style.width=(showT?Math.max(0,z.cd/gr*100):(z.st==="OCCUPIED"?100:0))+"%";
+    const cdTxt=z.man?"Automation paused by manual override.":usable(z).length===0?"Both sensors faulted: loads held ON (fail-ON).":showT?`Grace period: loads switch off in ${z.cd} s (accelerated time).`:z.st==="OCCUPIED"?"Presence detected: loads stay ON.":"Zone empty: loads are OFF.";
+    $("#zcd"+i).textContent=cdTxt;
+    $("#zld"+i).innerHTML=`<span class="load ${on?"on":""}">Light ${on?"ON":"OFF"}</span><span class="load ${on?"on":""}">Fan ${on?"ON":"OFF"}</span>`;
+    $("#zsn"+i).textContent=(z.man||degraded(z))&&!(usable(z).length===0)?`Underlying state: ${z.st}${degraded(z)?` · grace ${gr} s (extended)`:""}`:"";
+    /* live zone cards */
+    const zc=$("#zc"+i);zc.dataset.k=v.key;
+    const cb=$("#zcb"+i);cb.textContent=v.label;cb.className="sbadge s-"+v.key;
+    $("#zcs"+i).innerHTML=sensorTxt(z,"pir")+"<br>"+sensorTxt(z,"mm");
+    $("#zct"+i).textContent=showT?z.cd+" s left":"Idle";
+    $("#zcl"+i).textContent=`Light ${on?"ON":"OFF"} · Fan ${on?"ON":"OFF"}`;
+    $("#zco"+i).textContent=MANL[z.man];
+    /* classroom svgs */
+    const pirOn=usable(z).includes("pir")&&z.pir,mmOn=usable(z).includes("mm")&&z.mm;
+    $$(`.room [data-z="${i}"]`).forEach(el=>{
+      if(el.classList.contains("zone-rect"))el.setAttribute("class","zone-rect s-"+v.key);
+      else if(el.classList.contains("pir-field"))el.classList.toggle("on",pirOn);
+      else if(el.classList.contains("mm-field"))el.classList.toggle("on",mmOn);
+      else if(el.classList.contains("rng"))el.classList.toggle("on",mmOn);
+      else if(el.classList.contains("lamp-halo")||el.classList.contains("lamp"))el.classList.toggle("on",on);
+      else if(el.classList.contains("fan"))el.classList.toggle("on",on);
+      else if(el.classList.contains("p-still"))el.classList.toggle("on",z.pir||z.mm);
+      else if(el.classList.contains("p-walk"))el.classList.toggle("on",z.pir);
+      else if(el.classList.contains("chip-bg"))el.setAttribute("class","chip-bg s-"+v.key);
+      else if(el.classList.contains("chip-t"))el.textContent=`${v.label} · Light ${on?"ON":"OFF"} · Fan ${on?"ON":"OFF"}`.replace("MANUAL OVERRIDE","OVERRIDE");
+    });
+    pills.push(`<span class="pill" data-st="${v.label}"><i></i>Zone ${i+1}: ${v.label.toLowerCase()}</span>`);
+  });
+  $("#heroPills").innerHTML=pills.join("");
+  $$("#modes button").forEach(b=>{const p=b.dataset.m===mode;b.classList.toggle("on",p);b.setAttribute("aria-pressed",p)});
+  $$("#smz button").forEach(b=>{const p=+b.dataset.z===smZone;b.classList.toggle("on",p);b.setAttribute("aria-pressed",p)});
+  $("#hint").textContent=HINTS[mode];
+  const sv=view(Z[smZone]);
+  $$(".sm .node-g").forEach(g=>{g.classList.toggle("active",g.dataset.s===sv.label);g.classList.toggle("under",g.dataset.s===Z[smZone].st&&sv.label!==Z[smZone].st)});
+  firstRender=false;
+}
+function init(){
+  mode="Hybrid";simT=0;smZone=0;$("#log").innerHTML="";
+  Z.forEach(z=>Object.assign(z,{pir:false,mm:false,pirF:false,mmF:false,man:0,st:"VACANT",cd:0,last:"VACANT"}));
+  Z[0].pir=Z[0].mm=true;Z[1].mm=true;           /* zone 1: walking in; zone 2: seated, still; zone 3: empty */
+  Z.forEach(z=>evalZone(z,false));firstRender=true;render();
+  logT("t+0s  Demo started: Zone 1 active, Zone 2 seated, Zone 3 empty");
+}
+setInterval(()=>{simT++;Z.forEach(z=>evalZone(z,true));render()},1000);
+init();
+
+/* ============================================================
+   POWER ELECTRONICS TOGGLE
+   ============================================================ */
+function setGate(g){const pe=$("#pe");pe.dataset.gate=g;
+  $$("button[data-g]",pe).forEach(b=>{const p=b.dataset.g==g;b.classList.toggle("on",p);b.setAttribute("aria-pressed",p)});
+  $("#peRead").innerHTML=g=="1"?"<b>GPIO HIGH:</b> the gate is driven above its threshold, the MOSFET conducts, and current flows from +5 V through the motor and the MOSFET to ground.":
+   "<b>GPIO LOW:</b> the MOSFET is off and the 10 kΩ pulldown holds the gate at 0 V, so the motor stays off even if the GPIO floats during reset. When the motor current stops, the flyback diode gives the motor's inductive spike a safe path."}
+$$("#pe button[data-g]").forEach(b=>b.onclick=()=>setGate(b.dataset.g));setGate("1");
+(function(){const st=document.createElement("style");st.textContent=`#pe[data-gate="0"] .iflow,#pe[data-gate="0"] .motor-glow{display:none}#pe[data-gate="1"] .motor-glow{opacity:.45}`;document.head.appendChild(st)})();
+
+/* ============================================================
+   COMPONENT EXPLORER
+   ============================================================ */
+const COMP=[
+{n:"ESP32-S3",q:"×1",c:"Control",p:"Central controller. Reads the sensors, runs one state machine per zone and drives loads, display and buzzer.",io:"In: PIR, mmWave and override signals. Out: MOSFET gates, LEDs, OLED (I²C), buzzer.",r:"Hub of all three zones; its ground is tied to the load supply ground.",w:"Low cost, well documented, enough I/O planned for three zones, and it decides offline."},
+{n:"S3KM1110 24 GHz mmWave sensor",q:"×3",c:"Sensing",p:"Presence/motion sensing for one zone, aimed at keeping occupancy awareness when there is little movement.",io:"In: reflected 24 GHz energy (handled inside the module). Out: presence/motion data to the ESP32-S3, over the interface the module provides.",r:"One per zone, placed to cover that zone only.",w:"Gives a second, different view of the zone than PIR, with no images.",cav:"Exact range and detection performance depend on module configuration, placement and calibration."},
+{n:"PIR sensor",q:"×3",c:"Sensing",p:"Fast, low-power motion detection for one zone.",io:"In: change in infrared from moving warm bodies. Out: digital motion signal.",r:"Paired with the mmWave module in each zone for quick response on entry.",w:"Cheap, simple and immediate; its weakness (low motion) is what the mmWave sensor complements."},
+{n:"0.9-inch I²C OLED",q:"×1",c:"Interface",p:"Local status display for zone states and countdown timers.",io:"In: I²C data (SDA, SCL) from the ESP32-S3. Out: text on screen.",r:"Shares the two I²C lines; no extra GPIO per zone.",w:"Shows what the controller is thinking without a laptop, which helps demos and debugging."},
+{n:"N-channel MOSFET (logic-level)",q:"×3",c:"Switching & loads",p:"Low-side switch for each 5 V motor/fan.",io:"In: logic-level gate signal from a GPIO. Out: switched drain current through the motor to GND.",r:"Drain to motor negative, source to GND, gate from GPIO with a 10 kΩ pulldown.",w:"A GPIO cannot drive a motor. The MOSFET carries the load current while the GPIO only drives the gate.",cav:"Pick a part with on-resistance specified at 3.3 V gate drive and a current rating above the motor start-up current."},
+{n:"1N4007 flyback diode",q:"×3",c:"Switching & loads",p:"Gives the motor's inductive spike a safe path when the MOSFET turns off.",io:"In: motor back-EMF. Out: a recirculating current loop.",r:"Across the motor terminals: cathode to +5 V, anode to the MOSFET drain.",w:"Protects the MOSFET from voltage spikes at turn-off."},
+{n:"LED",q:"×3",c:"Switching & loads",p:"Visual indicator representing each zone's lighting load.",io:"In: current through a resistor from a GPIO. Out: light.",r:"One per zone, shows whether that zone's light is commanded ON.",w:"A safe, low-voltage stand-in for classroom lighting."},
+{n:"Resistors",q:"As built",c:"Switching & loads",p:"Set currents and logic levels: 10 kΩ gate pulldowns and LED current limiting.",io:"Passive: no signal input or output.",r:"Gate to GND at each MOSFET; in series with each LED.",w:"A pulldown keeps a MOSFET off while a GPIO is floating; a limiter protects the LED and the GPIO."},
+{n:"5 V DC motor/fan",q:"×3",c:"Switching & loads",p:"Stand-in for the classroom fan in each zone.",io:"In: 5 V through the MOSFET. Out: airflow.",r:"Positive terminal to +5 V, negative terminal to the MOSFET drain.",w:"A low-voltage, safe representation of a fan. It is inductive, hence the flyback diode."},
+{n:"Buzzer",q:"×1",c:"Interface",p:"Audible feedback, for example on override, faults or state changes.",io:"In: signal from a GPIO. Out: sound.",r:"Output on the ESP32-S3.",w:"Feedback without looking at the display."},
+{n:"Push button / manual override",q:"×3",c:"Interface",p:"Lets a person take control of one zone.",io:"In: a press. Out: a logic level to a GPIO.",r:"One per zone; pressing it enters MANUAL OVERRIDE for that zone.",w:"Users accept automation they can overrule, and an override is a safe fallback."},
+{n:"Breadboard",q:"As built",c:"Power & wiring",p:"Solderless base for building and changing the circuit.",io:"Passive connections.",r:"Hosts the 5 V and GND rails and the module connections.",w:"Quick to rewire while tuning.",cav:"Keep motor current paths short and within the breadboard's contact ratings."},
+{n:"Low-voltage power supply",q:"×1",c:"Power & wiring",p:"Powers the motors, controller and sensors at low voltage.",io:"In: a certified adaptor or bench supply. Out: regulated low-voltage DC (5 V load rail).",r:"+5 V rail to the motors; ground shared with the ESP32-S3.",w:"Keeps everything low voltage and touch-safe. Size it for all three motors starting together."},
+{n:"Jumper wiring",q:"As built",c:"Power & wiring",p:"Connects modules, breadboard and supply.",io:"Passive: carries power, ground and signals.",r:"Signal, power and ground connections throughout.",w:"Reconfigurable; colour-code power, ground and signal to avoid mistakes."}
+];
+const CATS=["All","Sensing","Control","Switching & loads","Interface","Power & wiring"];
+$("#ccf").innerHTML=CATS.map(c=>`<button type="button" data-c="${c}" aria-pressed="false">${c}</button>`).join("");
+$("#ccards").innerHTML=COMP.map((c,i)=>`<article class="cc" data-c="${c.c}" tabindex="0" aria-labelledby="cn${i}"><span class="qty" aria-label="Quantity ${c.q}">${c.q}</span><span class="cat">${c.c}</span><h3 id="cn${i}">${c.n}</h3>
+ <dl><dt>Purpose</dt><dd>${c.p}</dd><dt>Input / output</dt><dd>${c.io}</dd><dt>Connection role</dt><dd>${c.r}</dd><dt>Why it is used</dt><dd>${c.w}</dd></dl>${c.cav?`<div class="cav">${c.cav}</div>`:""}</article>`).join("");
+$$("#ccf button").forEach(b=>b.onclick=()=>{$$("#ccf button").forEach(x=>{x.classList.toggle("on",x==b);x.setAttribute("aria-pressed",x==b)});
+  $$("#ccards .cc").forEach(c=>c.style.display=(b.dataset.c=="All"||c.dataset.c==b.dataset.c)?"":"none")});
+$("#ccf button").click();
+
+/* ============================================================
+   TESTING MATRIX (placeholders only)
+   ============================================================ */
+const SC=[["Person entering","Detection and response time","All three should detect; response time is the comparison"],
+["Person walking","Tracking a moving person","All three should detect"],
+["Person sitting still","Core low-motion test","PIR-only may lose the person; hybrid is designed to reduce this"],
+["Typing","Small-motion detection at a desk","PIR-only may lose the person"],
+["Writing","Small-motion detection at a desk","PIR-only may lose the person"],
+["Multiple occupants","Multi-occupant behaviour",""],
+["Room empty","Correct turn-off and delay","Turn-off after the configured delay"],
+["Fan running in empty room","False occupancy from the fan","mmWave-only and hybrid may false-detect if untuned"],
+["Corridor activity","Boundary and through-wall leakage","Range and placement dependent"],
+["Sunlight / warm object near PIR","PIR false trigger","PIR-only and hybrid may false-trigger"],
+["One sensor disabled","Fault handling","Hybrid should degrade to the working sensor"]];
+const CF=["PIR-only","mmWave-only","Hybrid"];
+function hypFor(i,c){const h=SC[i][2];if(!h)return null;
+  if(i==2||i==3||i==4)return c==0?"May lose the person":c==1?"May hold presence (module-dependent)":"Designed to reduce false vacancy";
+  if(i==7)return c==0?"Usually unaffected":"May false-detect if untuned";
+  if(i==9)return c==1?"Not affected":"May false-trigger";
+  if(i==10)return c==2?"Should degrade to the working sensor":null;
+  return null}
+$("#mxv").innerHTML=`<button type="button" data-v="status" aria-pressed="true" class="on">Status</button><button type="button" data-v="hyp" aria-pressed="false">Show hypotheses (not results)</button>`;
+$("#matrix").innerHTML=`<div class="tw mx" id="mx" data-view="status" role="region" tabindex="0" aria-label="Experimental matrix: scenarios against configurations (scrollable)"><table><thead><tr><th scope="col" rowspan="2">Scenario</th><th scope="col" rowspan="2">What it tests</th><th scope="colgroup" colspan="3" class="grp">Configuration</th></tr><tr>${CF.map(c=>`<th scope="col">${c}</th>`).join("")}</tr></thead><tbody>`+
+ SC.map((s,i)=>`<tr><th scope="row">${s[0]}</th><td style="text-align:left">${s[1]}</td>${CF.map((c,j)=>{const r=RESULTS[i]&&RESULTS[i][c];const h=hypFor(i,j);
+   return `<td>${r?esc(JSON.stringify(r)):`<span class="cell">Not tested</span>`}<span class="hyp${h?"":" none"}">${h?`<span class="tag t-hyp" style="margin:0 4px 0 0">Hypothesis</span>${h}`:"No hypothesis stated"}</span></td>`}).join("")}</tr>`).join("")+`</tbody></table></div>`;
+$$("#mxv button").forEach(b=>b.onclick=()=>{$("#mx").dataset.view=b.dataset.v;$$("#mxv button").forEach(x=>{x.classList.toggle("on",x==b);x.setAttribute("aria-pressed",x==b)})});
+const MET=["False vacancy rate","False occupancy time","Response time","Turn-off accuracy","Energy saved","Standby power"];
+$("#mmetrics").innerHTML=`<div class="tw mx" role="region" tabindex="0" aria-label="Metrics by configuration (scrollable)"><table><thead><tr><th scope="col">Metric</th>${CF.map(c=>`<th scope="col">${c}</th>`).join("")}</tr></thead><tbody>`+
+ MET.map(m=>`<tr><th scope="row">${m}</th>${CF.map(()=>`<td><span class="cell">&nbsp;&nbsp;—&nbsp;&nbsp;</span></td>`).join("")}</tr>`).join("")+`</tbody></table></div><p class="sub" style="font-size:.9rem">Empty cells are placeholders. Each will hold a value only after it has been measured.</p>`;
+
+/* ============================================================
+   TIMELINE, FUTURE, NAV
+   ============================================================ */
+$("#tl").innerHTML=[["Phase 0 · Weeks 1–2","Audit and research: room audit, tariffs, wattages, datasheets, literature → measured Table 1"],["Phase 1 · Week 3","Design: components, three-zone circuit, state logic, test plan → design doc, BOM"],["Phase 2 · Week 4","Procurement and bench setup → individual sensors working"],["Phase 3 · Weeks 5–7","Integration: fusion logic, MOSFET switching, override, display → working three-zone prototype"],["Phase 4 · Week 8","Tuning: mmWave sensitivity and range, timers, placement → tuned parameters"],["Phase 5 · Weeks 9–10","Experiments: three configurations → raw data"],["Phase 6 · Week 11","Analysis and documentation → results, graphs, energy"],["Phase 7 · Week 12","Demo and report → deliverables"]].map(a=>`<li><b>${a[0]}</b>${a[1]}</li>`).join("");
+$("#fut").innerHTML=["Daylight sensing (LDR)","AC control via IR remote emulation or thermostat setpoint","Timetable-aware timeouts","Wi-Fi/MQTT energy dashboard","Current sensing of real load","Multi-sensor coverage for large halls","Adaptive timeouts from usage","Certified mains-rated switching (for example rated relays or solid-state relays with protection), only under qualified electrical supervision"].map(x=>`<div class="glass tight">${x}</div>`).join("");
+
+const navLinks=$$("#nav a"),brand=$(".brand"),navUL=$(".navlinks");
+const secs=["top",...navLinks.map(a=>a.hash.slice(1))].map(id=>document.getElementById(id));
+function setActive(id){
+  navLinks.forEach(a=>{const on=a.hash=="#"+id;a.classList.toggle("on",on);if(on){a.setAttribute("aria-current","true");
+    const l=a.offsetLeft-navUL.clientWidth/2+a.offsetWidth/2;navUL.scrollTo({left:l,behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth"})}else a.removeAttribute("aria-current")})}
+const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)setActive(x.target.id)}),{rootMargin:"-40% 0px -55% 0px"});
+secs.forEach(s=>s&&io.observe(s));
+</script>
+</body></html>
